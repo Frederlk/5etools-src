@@ -19,23 +19,23 @@ Phased migration from legacy JS to modern TypeScript, starting with smallest dep
 |-------|-------------|--------|-------|
 | 1 | Core Utilities | ✅ Complete | str, array, sort, misc utils |
 | 2 | Type Definitions | ✅ Complete | Uses existing /types/, added renderer types |
-| 3 | Parser Migration | ⚠️ Partial | Code complete, **unit tests missing** |
-| 4 | Base Renderer | ⚠️ Partial | Code complete, **integration tests missing** |
-| 5 | Entity Renderers | ❌ Not Started | HTML renderers for monster/spell/item |
+| 3 | Parser Migration | ✅ Complete | Code + unit tests (282 tests) |
+| 4 | Base Renderer | ✅ Complete | Code + integration tests (305 tests) |
+| 5 | Entity Renderers | ✅ Complete | HTML renderers for monster/spell/item |
 | 6 | Markdown Renderer | ⚠️ Partial | Core + monster/spell/item done, **other entities pending** |
 | 7 | Converter | ❌ Not Started | Markdown → Entry conversion + E2E tests |
 
 ### Remaining Work
 
-**Tests (can be deferred):**
-- [ ] Phase 3: Unit tests for parser modules
-- [ ] Phase 4: Integration tests for base renderer
+**Tests:**
+- [x] Phase 3: Unit tests for parser modules (282 tests)
+- [x] Phase 4: Integration tests for base renderer (305 tests)
 - [ ] Phase 7: E2E tests with real D&D data
 
-**Phase 5 - Entity Renderers (HTML output):**
-- [ ] renderer/monster.ts - Monster HTML rendering utilities
-- [ ] renderer/spell.ts - Spell HTML rendering utilities
-- [ ] renderer/item.ts - Item HTML rendering utilities
+**Phase 5 - Entity Renderers (HTML output):** ✅ COMPLETE
+- [x] renderer/monster.ts - Monster HTML rendering utilities
+- [x] renderer/spell.ts - Spell HTML rendering utilities
+- [x] renderer/item.ts - Item HTML rendering utilities
 
 **Phase 6.5 - Additional Markdown Entities:**
 - [ ] race, feat, vehicle, object, deity, language
@@ -528,18 +528,18 @@ export const defaultConfig: MarkdownConfig = {
 - [x] 3.2 parser/monster.ts
 - [x] 3.3 parser/spell.ts
 - [x] 3.4 parser/item.ts
-- [ ] Unit tests for parser
+- [x] Unit tests for parser (282 tests: attributes, monster, spell, item)
 
 ### Phase 4 - Base Renderer
 - [x] 4.1 renderer/tags.ts
 - [x] 4.2 renderer/table.ts
 - [x] 4.3 renderer/base.ts
-- [ ] Integration tests
+- [x] Integration tests (305 tests: types, tags, table, base)
 
 ### Phase 5 - Entity Renderers
-- [ ] 5.1 renderer/monster.ts
-- [ ] 5.2 renderer/spell.ts
-- [ ] 5.3 renderer/item.ts
+- [x] 5.1 renderer/monster.ts
+- [x] 5.2 renderer/spell.ts
+- [x] 5.3 renderer/item.ts
 
 ### Phase 6 - Markdown Renderer
 - [x] 6.1 markdown/renderer.ts
