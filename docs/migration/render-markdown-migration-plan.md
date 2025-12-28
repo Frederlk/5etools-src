@@ -13,6 +13,40 @@ Phased migration from legacy JS to modern TypeScript, starting with smallest dep
 
 ---
 
+## Status Summary
+
+| Phase | Description | Status | Notes |
+|-------|-------------|--------|-------|
+| 1 | Core Utilities | ✅ Complete | str, array, sort, misc utils |
+| 2 | Type Definitions | ✅ Complete | Uses existing /types/, added renderer types |
+| 3 | Parser Migration | ⚠️ Partial | Code complete, **unit tests missing** |
+| 4 | Base Renderer | ⚠️ Partial | Code complete, **integration tests missing** |
+| 5 | Entity Renderers | ❌ Not Started | HTML renderers for monster/spell/item |
+| 6 | Markdown Renderer | ⚠️ Partial | Core + monster/spell/item done, **other entities pending** |
+| 7 | Converter | ❌ Not Started | Markdown → Entry conversion + E2E tests |
+
+### Remaining Work
+
+**Tests (can be deferred):**
+- [ ] Phase 3: Unit tests for parser modules
+- [ ] Phase 4: Integration tests for base renderer
+- [ ] Phase 7: E2E tests with real D&D data
+
+**Phase 5 - Entity Renderers (HTML output):**
+- [ ] renderer/monster.ts - Monster HTML rendering utilities
+- [ ] renderer/spell.ts - Spell HTML rendering utilities
+- [ ] renderer/item.ts - Item HTML rendering utilities
+
+**Phase 6.5 - Additional Markdown Entities:**
+- [ ] race, feat, vehicle, object, deity, language
+- [ ] reward, psionic, cult, boon, charoption
+- [ ] recipe, facility, trap, hazard, legendaryGroup
+
+**Phase 7 - Converter:**
+- [ ] markdown/converter.ts - Parse markdown back to Entry objects
+
+---
+
 ## Phase 1: Core Utilities
 
 ### 1.1 String Utilities (`str-util.ts`)
