@@ -1,0 +1,1 @@
+type Corpusshared = any;
