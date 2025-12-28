@@ -12,7 +12,7 @@ export declare const set: <T>(object: Record<string, unknown>, ...pathAndVal: [.
 export declare const getOrSet: <T>(object: Record<string, unknown>, ...pathAndVal: [...string[], T]) => T | null;
 export declare const deleteProperty: (object: unknown, ...path: string[]) => boolean;
 export declare const deleteObjectPath: (object: Record<string, unknown>, ...path: string[]) => boolean;
-export declare const merge: <T extends Record<string, unknown>>(obj1: T, obj2: T) => T;
+export declare const merge: <T extends Record<string, unknown>, U extends Record<string, unknown>>(obj1: T, obj2: U) => T & U;
 export declare const expand: <T>(obj: T) => T;
 export declare const flatten: <T>(obj: T) => T;
 export declare const setComposite: (obj: Record<string, unknown>, path: string, val: unknown) => unknown;
@@ -30,7 +30,7 @@ export declare const invertColor: (hex: string, options?: {
     light?: string;
 }) => string;
 export declare const pDelay: <T = void>(msecs: number, resolveAs?: T) => Promise<T>;
-type WalkerHandler<T> = (obj: T, lastKey?: string, stack?: unknown[]) => T | void;
+type WalkerHandler<T> = (obj: T, lastKey?: string, stack?: unknown[]) => unknown;
 type WalkerRunHandler<T> = (obj: T, lastKey?: string, stack?: unknown[]) => void;
 export interface WalkerHandlers {
     string?: WalkerHandler<string> | WalkerHandler<string>[];

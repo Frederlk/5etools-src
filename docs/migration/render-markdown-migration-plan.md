@@ -22,7 +22,7 @@ Phased migration from legacy JS to modern TypeScript, starting with smallest dep
 | 3 | Parser Migration | ✅ Complete | Code + unit tests (282 tests) |
 | 4 | Base Renderer | ✅ Complete | Code + integration tests (305 tests) |
 | 5 | Entity Renderers | ✅ Complete | HTML renderers for monster/spell/item |
-| 6 | Markdown Renderer | ⚠️ Partial | Core + monster/spell/item done, **other entities pending** |
+| 6 | Markdown Renderer | ⚠️ Partial | Core + 12/20 entities done (8 remaining) |
 | 7 | Converter | ❌ Not Started | Markdown → Entry conversion + E2E tests |
 
 ### Remaining Work
@@ -38,9 +38,22 @@ Phased migration from legacy JS to modern TypeScript, starting with smallest dep
 - [x] renderer/item.ts - Item HTML rendering utilities
 
 **Phase 6.5 - Additional Markdown Entities:**
-- [ ] race, feat, vehicle, object, deity, language
-- [ ] reward, psionic, cult, boon, charoption
-- [ ] recipe, facility, trap, hazard, legendaryGroup
+- [x] race
+- [x] feat
+- [x] vehicle
+- [x] object
+- [x] deity
+- [x] language
+- [x] reward
+- [x] psionic
+- [ ] cult
+- [ ] boon
+- [ ] charoption
+- [ ] recipe
+- [ ] facility
+- [ ] trap
+- [ ] hazard
+- [ ] legendaryGroup
 
 **Phase 7 - Converter:**
 - [ ] markdown/converter.ts - Parse markdown back to Entry objects
@@ -546,7 +559,22 @@ export const defaultConfig: MarkdownConfig = {
 - [x] 6.2 markdown/monster.ts
 - [x] 6.3 markdown/spell.ts
 - [x] 6.4 markdown/item.ts
-- [ ] 6.5 Other entities (as needed)
+- [x] 6.5 markdown/race.ts
+- [x] 6.6 markdown/feat.ts
+- [x] 6.7 markdown/vehicle.ts
+- [x] 6.8 markdown/object.ts
+- [x] 6.9 markdown/deity.ts
+- [x] 6.10 markdown/language.ts
+- [x] 6.11 markdown/reward.ts
+- [x] 6.12 markdown/psionic.ts
+- [ ] 6.13 markdown/cult.ts
+- [ ] 6.14 markdown/boon.ts
+- [ ] 6.15 markdown/charoption.ts
+- [ ] 6.16 markdown/recipe.ts
+- [ ] 6.17 markdown/facility.ts
+- [ ] 6.18 markdown/trap.ts
+- [ ] 6.19 markdown/hazard.ts
+- [ ] 6.20 markdown/legendaryGroup.ts
 
 ### Phase 7 - Converter
 - [ ] 7.1 markdown/converter.ts

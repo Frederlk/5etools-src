@@ -1,0 +1,27 @@
+// Parser Module - Barrel export
+// Re-exports all parser modules for convenient imports
+// Note: StyleHint is defined in multiple modules; import from specific module if needed
+// Attribute parser (ability scores, modifiers)
+export * from "./attributes.js";
+// Monster parser (type, AC, speed, immunities, alignment)
+// Excludes StyleHint to avoid conflict with spell/item
+export { 
+// Constants
+SPEED_MODES, SIZE_ABV_TO_FULL, MON_TYPE_TO_PLURAL, ALIGNMENT_ABV_TO_FULL, DMG_TYPES, 
+// Functions
+sizeAbvToFull, monTypeToPlural, monTypeToFullObj, acToFull, getSpeedString, getFullImmRes, getFullCondImm, alignmentAbvToFull, alignmentListToFull, } from "./monster.js";
+// Spell parser (level, school, time, range, components, duration)
+// Excludes StyleHint to avoid conflict
+export { 
+// Constants
+SP_SCHOOL_ABV_TO_FULL, SP_SCHOOL_ABV_TO_SHORT, SP_TM_ACTION, SP_TM_B_ACTION, SP_TM_REACTION, SP_TM_ROUND, SP_TM_MINS, SP_TM_HRS, SP_TM_SPECIAL, SP_TIME_SINGLETONS, SP_TIME_TO_FULL, SP_TIME_TO_ABV, RNG_SPECIAL, RNG_POINT, RNG_LINE, RNG_CUBE, RNG_CONE, RNG_EMANATION, RNG_RADIUS, RNG_SPHERE, RNG_HEMISPHERE, RNG_CYLINDER, RNG_SELF, RNG_SIGHT, RNG_UNLIMITED, RNG_UNLIMITED_SAME_PLANE, RNG_TOUCH, UNT_INCHES, UNT_FEET, UNT_YARDS, UNT_MILES, SP_RANGE_TYPE_TO_FULL, SP_END_TYPE_TO_FULL, DURATION_TYPES, DURATION_AMOUNT_TYPES, 
+// Functions
+getOrdinalForm, spLevelToFull, spSchoolAbvToFull, spSchoolAbvToShort, spRangeTypeToFull, spEndTypeToFull, getSingletonUnit, spMetaToArr, spLevelSchoolMetaToFull, getTimeToFull, spTimeListToFull, spRangeToFull, spComponentsToFull, spDurationToFull, } from "./spell.js";
+// Item parser (value, weight, currency, attack types)
+// Excludes StyleHint to avoid conflict
+export { 
+// Constants
+COIN_ABVS, COIN_ABV_TO_FULL, COIN_CONVERSIONS, DEFAULT_CURRENCY_CONVERSION_TABLE, FULL_CURRENCY_CONVERSION_TABLE, ATK_TYPE_TO_FULL, ARMOR_ABV_TO_FULL, WEAPON_ABV_TO_FULL, ITM_RARITY_TO_SHORT, ITEM_RECHARGE_TO_FULL, ITEM_MISC_TAG_TO_FULL, 
+// Functions
+numberToVulgar, numberToFractional, coinAbvToFull, getCurrencyConversionTable, getCurrencyAndMultiplier, doSimplifyCoins, getAsCopper, getDisplayCurrency, itemValueToFull, itemValueToFullMultiCurrency, spellComponentCostToFull, vehicleCostToFull, itemVehicleCostsToFull, itemWeightToFull, attackTypeToFull, armorFullToAbv, weaponFullToAbv, itemRarityToShort, itemRechargeToFull, itemMiscTagToFull, coinValueToNumber, weightValueToNumber, } from "./item.js";
+//# sourceMappingURL=index.js.map

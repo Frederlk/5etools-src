@@ -26,9 +26,11 @@ export declare const ascSortNumericalSuffix: (a: string, b: string, numberCleanR
 /**
  * Sort by property with embedded number padding for correct numerical order
  */
-export declare const ascSortLowerPropNumeric: <T extends {
+export declare const ascSortLowerPropNumeric: <T extends Record<string, unknown>>(prop: string & keyof T, a: T & {
     _sortName?: string;
-}>(prop: keyof T, a: T, b: T) => number;
+}, b: T & {
+    _sortName?: string;
+}) => number;
 /**
  * Sort dates in ascending order
  */
