@@ -490,10 +490,10 @@ export const defaultConfig: MarkdownConfig = {
 - [x] 2.4 renderer/types.ts (renderer-specific types)
 
 ### Phase 3 - Parser
-- [ ] 3.1 parser/attributes.ts
-- [ ] 3.2 parser/monster.ts
-- [ ] 3.3 parser/spell.ts
-- [ ] 3.4 parser/item.ts
+- [x] 3.1 parser/attributes.ts
+- [x] 3.2 parser/monster.ts
+- [x] 3.3 parser/spell.ts
+- [x] 3.4 parser/item.ts
 - [ ] Unit tests for parser
 
 ### Phase 4 - Base Renderer

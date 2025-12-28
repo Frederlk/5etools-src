@@ -1,32 +1,14 @@
-// 5etools Renderer Markdown - TypeScript Migration
-// Entry point - re-exports all migrated modules
-// Note: Some types/constants have name conflicts across modules
-// Import from specific modules (./util, ./renderer, ./parser) for full control
+// Parser Module - Barrel export
+// Re-exports all parser modules for convenient imports
+// Note: StyleHint is defined in multiple modules; import from specific module if needed
 
-// Utilities (use ./util for granular imports)
-export * from "./util/index.js";
+// Attribute parser (ability scores, modifiers)
+export * from "./attributes.js";
 
-// Renderer types (StyleHint is also in parser modules)
-export * from "./renderer/index.js";
-
-// Parser functions - explicit exports to avoid conflicts
-// ABIL_ABVS conflict: attributes.ts and sort-util.ts both export this
-// StyleHint conflict: renderer and parser modules both export this
+// Monster parser (type, AC, speed, immunities, alignment)
+// Excludes StyleHint to avoid conflict with spell/item
 export {
-	// Attributes
-	type AbilityScore,
-	type AbilityScoreExtended,
-	attAbvToFull,
-	attFullToAbv,
-	attrChooseToFull,
-	getAbilityModNumber,
-	getAbilityModifier,
-	isValidAbilityAbv,
-	isValidAbilityExtended,
-	ATB_ABV_TO_FULL,
-	// Re-export ABIL_ABVS from attributes as the canonical one for parser
-	ABIL_ABVS as PARSER_ABIL_ABVS,
-	// Monster
+	// Types
 	type SizeAbbreviation,
 	type AlignmentAbbreviation,
 	type MonsterType,
@@ -45,11 +27,13 @@ export {
 	type GetSpeedStringOptions,
 	type GetFullImmResOptions,
 	type GetFullCondImmOptions,
+	// Constants
 	SPEED_MODES,
 	SIZE_ABV_TO_FULL,
 	MON_TYPE_TO_PLURAL,
 	ALIGNMENT_ABV_TO_FULL,
 	DMG_TYPES,
+	// Functions
 	sizeAbvToFull,
 	monTypeToPlural,
 	monTypeToFullObj,
@@ -59,7 +43,12 @@ export {
 	getFullCondImm,
 	alignmentAbvToFull,
 	alignmentListToFull,
-	// Spell
+} from "./monster.js";
+
+// Spell parser (level, school, time, range, components, duration)
+// Excludes StyleHint to avoid conflict
+export {
+	// Types
 	type SpellSchoolAbbreviation,
 	type SpellTimeUnit,
 	type SpellTime,
@@ -75,6 +64,7 @@ export {
 	type SpRangeToFullOptions,
 	type SpComponentsToFullOptions,
 	type SpDurationToFullOptions,
+	// Constants
 	SP_SCHOOL_ABV_TO_FULL,
 	SP_SCHOOL_ABV_TO_SHORT,
 	SP_TM_ACTION,
@@ -110,6 +100,7 @@ export {
 	SP_END_TYPE_TO_FULL,
 	DURATION_TYPES,
 	DURATION_AMOUNT_TYPES,
+	// Functions
 	getOrdinalForm,
 	spLevelToFull,
 	spSchoolAbvToFull,
@@ -124,7 +115,12 @@ export {
 	spRangeToFull,
 	spComponentsToFull,
 	spDurationToFull,
-	// Item
+} from "./spell.js";
+
+// Item parser (value, weight, currency, attack types)
+// Excludes StyleHint to avoid conflict
+export {
+	// Types
 	type CoinAbbreviation,
 	type CurrencyConversion,
 	type Currency,
@@ -135,6 +131,7 @@ export {
 	type GetDisplayCurrencyOptions,
 	type MoneyToFullOptions,
 	type MoneyToFullMultiCurrencyOptions,
+	// Constants
 	COIN_ABVS,
 	COIN_ABV_TO_FULL,
 	COIN_CONVERSIONS,
@@ -146,6 +143,7 @@ export {
 	ITM_RARITY_TO_SHORT,
 	ITEM_RECHARGE_TO_FULL,
 	ITEM_MISC_TAG_TO_FULL,
+	// Functions
 	numberToVulgar,
 	numberToFractional,
 	coinAbvToFull,
@@ -168,4 +166,7 @@ export {
 	itemMiscTagToFull,
 	coinValueToNumber,
 	weightValueToNumber,
-} from "./parser/index.js";
+} from "./item.js";
+
+// Export StyleHint from monster as the canonical parser StyleHint
+export type { StyleHint } from "./monster.js";
