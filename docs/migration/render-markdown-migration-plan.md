@@ -508,10 +508,10 @@ export const defaultConfig: MarkdownConfig = {
 - [ ] 5.3 renderer/item.ts
 
 ### Phase 6 - Markdown Renderer
-- [ ] 6.1 markdown/renderer.ts
-- [ ] 6.2 markdown/monster.ts
-- [ ] 6.3 markdown/spell.ts
-- [ ] 6.4 markdown/item.ts
+- [x] 6.1 markdown/renderer.ts
+- [x] 6.2 markdown/monster.ts
+- [x] 6.3 markdown/spell.ts
+- [x] 6.4 markdown/item.ts
 - [ ] 6.5 Other entities (as needed)
 
 ### Phase 7 - Converter
