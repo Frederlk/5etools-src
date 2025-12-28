@@ -137,6 +137,82 @@ export {
 	type DeityEntriesMeta,
 } from "./deity.js";
 
+// ============ Cult Markdown ============
+
+export {
+	CultMarkdownRenderer,
+	getCultMarkdownRenderer,
+	cultMarkdown,
+	type CultEntry,
+	type CultMarkdownOptions,
+	type CultEntriesMeta,
+} from "./cult.js";
+
+// ============ Boon Markdown ============
+
+export {
+	BoonMarkdownRenderer,
+	getBoonMarkdownRenderer,
+	boonMarkdown,
+	type BoonEntry,
+	type BoonMarkdownOptions,
+	type BoonRenderableEntriesMeta,
+} from "./boon.js";
+
+// ============ Legendary Group Markdown ============
+
+export {
+	LegendaryGroupMarkdownRenderer,
+	getLegendaryGroupMarkdownRenderer,
+	legendaryGroupMarkdown,
+	type LegendaryGroupEntry,
+	type LegendaryGroupMarkdownOptions,
+} from "./legendaryGroup.js";
+
+// ============ Character Option Markdown ============
+
+export {
+	CharoptionMarkdownRenderer,
+	getCharoptionMarkdownRenderer,
+	charoptionMarkdown,
+	type CharoptionEntry,
+	type CharoptionMarkdownOptions,
+	type CharoptionRenderableEntriesMeta,
+} from "./charoption.js";
+
+// ============ Recipe Markdown ============
+
+export {
+	RecipeMarkdownRenderer,
+	getRecipeMarkdownRenderer,
+	recipeMarkdown,
+	getRecipeRenderableEntriesMeta,
+	type RecipeEntry,
+	type RecipeMarkdownOptions,
+	type RecipeRenderableEntriesMeta,
+	type RecipeTimeMeta,
+} from "./recipe.js";
+
+// ============ Trap/Hazard Markdown ============
+
+export {
+	TrapMarkdownRenderer,
+	HazardMarkdownRenderer,
+	TrapHazardMarkdownRenderer,
+	getTrapMarkdownRenderer,
+	getHazardMarkdownRenderer,
+	getTrapHazardMarkdownRenderer,
+	trapMarkdown,
+	hazardMarkdown,
+	traphazardMarkdown,
+	type TrapEntry,
+	type TrapComplexEntry,
+	type HazardEntry,
+	type TrapHazardEntry,
+	type TrapMarkdownOptions,
+	type TrapRenderableEntriesMeta,
+} from "./trap.js";
+
 // ============ Re-export Types ============
 
 export type {
