@@ -497,9 +497,9 @@ export const defaultConfig: MarkdownConfig = {
 - [ ] Unit tests for parser
 
 ### Phase 4 - Base Renderer
-- [ ] 4.1 renderer/tags.ts
-- [ ] 4.2 renderer/table.ts
-- [ ] 4.3 renderer/base.ts
+- [x] 4.1 renderer/tags.ts
+- [x] 4.2 renderer/table.ts
+- [x] 4.3 renderer/base.ts
 - [ ] Integration tests
 
 ### Phase 5 - Entity Renderers
