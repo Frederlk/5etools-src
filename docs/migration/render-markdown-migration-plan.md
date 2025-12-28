@@ -96,48 +96,89 @@ Size: ~300 lines
 
 ## Phase 2: Type Definitions
 
-### 2.1 Core Entry Types (`types/entries.ts`)
+> **NOTE**: 5etools already has comprehensive TypeScript types in `/types/`.
+> See `/types/README.md` for architecture and usage.
+> We import from existing types rather than creating duplicates.
+
+### 2.1 Use Existing Entry Types
 ```
-Priority: HIGH (needed by renderer)
+Source: /types/entry.d.ts (manually maintained)
+Status: EXISTING - import directly
 ```
 
-**Types to define:**
+**Available types:**
 ```typescript
-interface EntryBase { type: string; name?: string; }
-interface EntryEntries extends EntryBase { type: "entries"; entries: Entry[]; }
-interface EntryList extends EntryBase { type: "list"; items: (string | Entry)[]; }
-interface EntryTable extends EntryBase { type: "table"; colLabels?: string[]; rows: (string | EntryCell)[][]; }
-// ... etc
-type Entry = string | EntryEntries | EntryList | EntryTable | ...
+import type { Entry, EntryObject, EntryBase } from "../../types/entry.js";
+import type { EntryEntries, EntryList, EntryTable } from "../../types/entry.js";
+import type { EntryQuote, EntryInset, EntryImage } from "../../types/entry.js";
+import type { EntrySpellcasting, EntryDice } from "../../types/entry.js";
+// ... 30+ entry types defined
 ```
 
 ---
 
-### 2.2 Entity Types (`types/entities.ts`)
+### 2.2 Use Existing Entity Types
 ```
-Priority: HIGH (needed by entity renderers)
+Source: /types/bestiary/, /types/spells/, /types/items.d.ts, etc.
+Status: EXISTING - import directly
 ```
 
-**Types to define:**
+**Available types:**
 ```typescript
-interface Monster { name: string; ac?: AC[]; hp?: HP; speed?: Speed; ... }
-interface Spell { name: string; level: number; school: string; ... }
-interface Item { name: string; rarity?: string; ... }
-// ... etc
+import type { Monster, BestiaryJson } from "../../types/bestiary/bestiary.js";
+import type { Spell, SpellsJson } from "../../types/spells/spells.js";
+import type { Item, ItemsJson } from "../../types/items.js";
+import type { Class, Subclass } from "../../types/class/class.js";
+import type { Feat } from "../../types/feats.js";
+import type { Race } from "../../types/races.js";
+// ... 90+ type definition files
 ```
 
 ---
 
-### 2.3 Renderer Types (`types/renderer.ts`)
+### 2.3 Use Existing Util Types
+```
+Source: /types/util.d.ts (manually maintained)
+Status: EXISTING - import directly
+```
+
+**Available types:**
+```typescript
+import type { Source, Page, Size, Alignment } from "../../types/util.js";
+import type { AbilityScoreAbbreviation, CreatureType } from "../../types/util.js";
+import type { DamageType, Condition, SpellSchool, Rarity } from "../../types/util.js";
+import type { Speed, Senses, Prerequisite } from "../../types/util.js";
+```
+
+---
+
+### 2.4 Renderer Types (`renderer/types.ts`) - NEW
 ```
 Priority: MEDIUM (for renderer migration)
+Size: ~50 lines
 ```
 
-**Types to define:**
+**Types to define (renderer-specific only):**
 ```typescript
-interface RenderOptions { prefix?: string; suffix?: string; }
-interface RenderMeta { depth: number; _typeStack: string[]; }
-type TextStack = [string];
+export interface RenderOptions {
+  prefix?: string;
+  suffix?: string;
+  isSkipNameRow?: boolean;
+}
+
+export interface RenderMeta {
+  depth: number;
+  _typeStack: string[];
+}
+
+export type TextStack = [string];
+
+export interface TagRenderInfo {
+  page: string;
+  source: string;
+  hash: string;
+  displayText?: string;
+}
 ```
 
 ---
@@ -443,9 +484,10 @@ export const defaultConfig: MarkdownConfig = {
 - [x] Unit tests for utilities
 
 ### Phase 2 - Types
-- [ ] 2.1 types/entries.ts
-- [ ] 2.2 types/entities.ts
-- [ ] 2.3 types/renderer.ts
+- [x] 2.1 Entry types (use existing /types/entry.d.ts)
+- [x] 2.2 Entity types (use existing /types/bestiary/, /types/spells/, etc.)
+- [x] 2.3 Util types (use existing /types/util.d.ts)
+- [x] 2.4 renderer/types.ts (renderer-specific types)
 
 ### Phase 3 - Parser
 - [ ] 3.1 parser/attributes.ts

@@ -106,7 +106,7 @@ export const deleteObjectPath = (object: Record<string, unknown>, ...path: strin
 
 // ============ Object Merge/Transform Functions ============
 
-export const merge = <T extends Record<string, unknown>>(obj1: T, obj2: T): T => {
+export const merge = <T extends Record<string, unknown>, U extends Record<string, unknown>>(obj1: T, obj2: U): T & U => {
   const obj2Copy = copyFast(obj2);
 
   for (const [k, v] of Object.entries(obj2Copy)) {
@@ -128,7 +128,7 @@ export const merge = <T extends Record<string, unknown>>(obj1: T, obj2: T): T =>
     (obj1 as Record<string, unknown>)[k] = v;
   }
 
-  return obj1;
+  return obj1 as T & U;
 };
 
 export const expand = <T>(obj: T): T => {
@@ -351,7 +351,7 @@ export const pDelay = <T = void>(msecs: number, resolveAs?: T): Promise<T> => {
 
 // ============ Walker Types ============
 
-type WalkerHandler<T> = (obj: T, lastKey?: string, stack?: unknown[]) => T | void;
+type WalkerHandler<T> = (obj: T, lastKey?: string, stack?: unknown[]) => unknown;
 type WalkerRunHandler<T> = (obj: T, lastKey?: string, stack?: unknown[]) => void;
 
 export interface WalkerHandlers {

@@ -68,10 +68,10 @@ const RE_SORT_NUM = /\d+/g;
 /**
  * Sort by property with embedded number padding for correct numerical order
  */
-export const ascSortLowerPropNumeric = <T extends { _sortName?: string }>(
-	prop: keyof T,
-	a: T,
-	b: T,
+export const ascSortLowerPropNumeric = <T extends Record<string, unknown>>(
+	prop: string & keyof T,
+	a: T & { _sortName?: string },
+	b: T & { _sortName?: string },
 ): number => {
 	a._sortName ??= ((a[prop] as string) || "").replace(RE_SORT_NUM, (...m) => `${(m[0] as string).padStart(10, "0")}`);
 	b._sortName ??= ((b[prop] as string) || "").replace(RE_SORT_NUM, (...m) => `${(m[0] as string).padStart(10, "0")}`);
