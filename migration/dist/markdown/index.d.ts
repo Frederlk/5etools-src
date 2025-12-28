@@ -16,6 +16,7 @@ export { LegendaryGroupMarkdownRenderer, getLegendaryGroupMarkdownRenderer, lege
 export { CharoptionMarkdownRenderer, getCharoptionMarkdownRenderer, charoptionMarkdown, type CharoptionEntry, type CharoptionMarkdownOptions, type CharoptionRenderableEntriesMeta, } from "./charoption.js";
 export { RecipeMarkdownRenderer, getRecipeMarkdownRenderer, recipeMarkdown, getRecipeRenderableEntriesMeta, type RecipeEntry, type RecipeMarkdownOptions, type RecipeRenderableEntriesMeta, type RecipeTimeMeta, } from "./recipe.js";
 export { TrapMarkdownRenderer, HazardMarkdownRenderer, TrapHazardMarkdownRenderer, getTrapMarkdownRenderer, getHazardMarkdownRenderer, getTrapHazardMarkdownRenderer, trapMarkdown, hazardMarkdown, traphazardMarkdown, type TrapEntry, type TrapComplexEntry, type HazardEntry, type TrapHazardEntry, type TrapMarkdownOptions, type TrapRenderableEntriesMeta, } from "./trap.js";
+export { MarkdownConverter, getEntries, getConvertedTable, postProcessTable, ENTRIES_WITH_CHILDREN, ENTRIES_WITH_ENUMERATED_TITLES, type ConvertedEntry, type TablePostProcessOptions, } from "./converter.js";
 export type { TextStack, RenderMeta, RenderOptions, MarkdownConfig, StyleHint, } from "../renderer/types.js";
 export { createTextStack, createRenderMeta, defaultMarkdownConfig } from "../renderer/types.js";
 //# sourceMappingURL=index.d.ts.map

@@ -1,6 +1,9 @@
-import type { Entry, EntryEntries, EntryList, EntryTable, EntryQuote, EntryInset, EntryInsetReadaloud, EntryVariant, EntryItem, EntryImage } from "../../../types/entry.js";
+import type { Entry, EntryObject, EntryList, EntryTable, EntryQuote, EntryInset, EntryInsetReadaloud, EntryVariant, EntryVariantSub, EntryItem, EntryItemSub, EntryItemSpell, EntryImage, EntryGallery, EntrySpellcasting, EntryFlowBlock } from "../../../types/entry.js";
 import type { TextStack, RenderMeta, RenderOptions, MarkdownConfig } from "../renderer/types.js";
 import { BaseRenderer, type RendererConfig } from "../renderer/base.js";
+type EntryWithEntries = EntryObject & {
+    entries?: Entry[];
+};
 export declare const CHARS_PER_PAGE = 5500;
 export interface MarkdownRendererConfig extends RendererConfig {
     markdownConfig: MarkdownConfig;
@@ -23,8 +26,8 @@ export declare class MarkdownRenderer extends BaseRenderer {
     private _renderString_renderTag;
     private _getAttackTagText;
     private _getOrdinalText;
-    protected _renderEntries(entry: EntryEntries, textStack: TextStack, meta: RenderMeta, options: RenderOptions): void;
-    protected _renderEntriesSubtypes(entry: EntryEntries, textStack: TextStack, meta: RenderMeta, options: RenderOptions, incDepth?: boolean): void;
+    protected _renderEntries(entry: EntryWithEntries, textStack: TextStack, meta: RenderMeta, options: RenderOptions): void;
+    protected _renderEntriesSubtypes(entry: EntryWithEntries, textStack: TextStack, meta: RenderMeta, options: RenderOptions, incDepth?: boolean): void;
     private _renderEntriesSubtypes_renderPreReqText;
     protected _renderList(entry: EntryList, textStack: TextStack, meta: RenderMeta, options: RenderOptions): void;
     protected _renderTable(entry: EntryTable, textStack: TextStack, meta: RenderMeta, options: RenderOptions): void;
@@ -32,17 +35,17 @@ export declare class MarkdownRenderer extends BaseRenderer {
     private _getPaddedStyleText;
     protected _renderQuote(entry: EntryQuote, textStack: TextStack, meta: RenderMeta, options: RenderOptions): void;
     private _getQuoteBy;
-    protected _renderInset(entry: EntryInset, textStack: TextStack, meta: RenderMeta, options: RenderOptions): void;
+    protected _renderInset(entry: EntryInset | EntryInsetReadaloud, textStack: TextStack, meta: RenderMeta, options: RenderOptions): void;
     protected _renderInsetReadaloud(entry: EntryInsetReadaloud, textStack: TextStack, meta: RenderMeta, options: RenderOptions): void;
     protected _renderVariant(entry: EntryVariant, textStack: TextStack, meta: RenderMeta, options: RenderOptions): void;
-    protected _renderVariantSub(entry: any, textStack: TextStack, meta: RenderMeta, options: RenderOptions): void;
+    protected _renderVariantSub(entry: EntryVariantSub, textStack: TextStack, meta: RenderMeta, options: RenderOptions): void;
     protected _renderItem(entry: EntryItem, textStack: TextStack, meta: RenderMeta, options: RenderOptions): void;
     private _shouldAddPeriod;
-    protected _renderItemSub(entry: any, textStack: TextStack, meta: RenderMeta, options: RenderOptions): void;
-    protected _renderItemSpell(entry: any, textStack: TextStack, meta: RenderMeta, options: RenderOptions): void;
+    protected _renderItemSub(entry: EntryItemSub, textStack: TextStack, meta: RenderMeta, options: RenderOptions): void;
+    protected _renderItemSpell(entry: EntryItemSpell, textStack: TextStack, meta: RenderMeta, options: RenderOptions): void;
     protected _renderImage(entry: EntryImage, textStack: TextStack, meta: RenderMeta, options: RenderOptions): void;
     private _getImageUrl;
-    protected _renderGallery(entry: any, textStack: TextStack, meta: RenderMeta, options: RenderOptions): void;
+    protected _renderGallery(entry: EntryGallery, textStack: TextStack, meta: RenderMeta, options: RenderOptions): void;
     protected _renderAbilityDc(entry: any, textStack: TextStack, meta: RenderMeta, options: RenderOptions): void;
     protected _renderAbilityAttackMod(entry: any, textStack: TextStack, meta: RenderMeta, options: RenderOptions): void;
     protected _renderAbilityGeneric(entry: any, textStack: TextStack, meta: RenderMeta, options: RenderOptions): void;
@@ -53,9 +56,9 @@ export declare class MarkdownRenderer extends BaseRenderer {
     protected _renderActions(entry: any, textStack: TextStack, meta: RenderMeta, options: RenderOptions): void;
     protected _renderAttack(entry: any, textStack: TextStack, meta: RenderMeta, options: RenderOptions): void;
     private _getAttackTypeText;
-    protected _renderSpellcasting(entry: any, textStack: TextStack, meta: RenderMeta, options: RenderOptions): void;
+    protected _renderSpellcasting(entry: EntrySpellcasting, textStack: TextStack, meta: RenderMeta, options: RenderOptions): void;
     private _getSpellcastingEntries;
-    protected _renderFlowBlock(entry: any, textStack: TextStack, meta: RenderMeta, options: RenderOptions): void;
+    protected _renderFlowBlock(entry: EntryFlowBlock, textStack: TextStack, meta: RenderMeta, options: RenderOptions): void;
     protected _renderHomebrew(entry: any, textStack: TextStack, meta: RenderMeta, options: RenderOptions): void;
     protected _renderCode(entry: any, textStack: TextStack, meta: RenderMeta, options: RenderOptions): void;
     protected _renderHr(entry: any, textStack: TextStack, meta: RenderMeta, options: RenderOptions): void;
@@ -73,8 +76,9 @@ export declare const markdownUtils: {
         meta?: RenderMeta;
     }, fn: () => T): T;
     getNormalizedNewlines(str: string): string;
-    getRenderedAbilityScores(ent: Record<string, number | null>, opts?: {
+    getRenderedAbilityScores(ent: Record<string, number | null | undefined>, opts?: {
         prefix?: string;
     }): string;
 };
+export {};
 //# sourceMappingURL=renderer.d.ts.map

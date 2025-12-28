@@ -4,9 +4,14 @@
 
 import type { Entry } from "../../../types/entry.js";
 import type { CharCreationOption, CharCreationOptionType } from "../../../types/charcreationoptions.js";
+import type { Prerequisite } from "../../../types/util.js";
 import type { TextStack, RenderMeta, StyleHint } from "../renderer/types.js";
 import { createTextStack, createRenderMeta } from "../renderer/types.js";
 import { MarkdownRenderer, getMarkdownRenderer, markdownUtils } from "./renderer.js";
+
+interface PrerequisiteExtended extends Prerequisite {
+	background?: Array<{ name: string; displayEntry?: string; source?: string }>;
+}
 
 // ============ Types ============
 
@@ -54,52 +59,49 @@ const getRenderedPrerequisite = (
 
 	const parts: string[] = [];
 
-	for (const prereq of ent.prerequisite) {
+	for (const prereq of ent.prerequisite as PrerequisiteExtended[]) {
 		const prereqParts: string[] = [];
 
-		if ((prereq as any).level) {
-			const level = (prereq as any).level;
+		if (prereq.level) {
+			const level = prereq.level;
 			if (typeof level === "number") {
 				prereqParts.push(`Level ${level}`);
 			} else if (level.level) {
 				prereqParts.push(`Level ${level.level}`);
 				if (level.class) {
-					const className = typeof level.class === "string"
-						? level.class
-						: level.class.name;
+					const className = level.class.name;
 					prereqParts.push(className);
 				}
 			}
 		}
 
-		if ((prereq as any).race) {
-			const raceNames = (prereq as any).race.map((r: any) => {
-				if (typeof r === "string") return r;
+		if (prereq.race) {
+			const raceNames = prereq.race.map((r) => {
 				let name = r.name || "";
-				if (r.subrace) name += ` (${r.subrace})`;
+				if ((r as { subrace?: string }).subrace) name += ` (${(r as { subrace?: string }).subrace})`;
 				return name;
 			}).filter(Boolean);
 			if (raceNames.length) prereqParts.push(raceNames.join(" or "));
 		}
 
-		if ((prereq as any).ability) {
-			const abilityParts = (prereq as any).ability.map((ab: any) => {
+		if (prereq.ability) {
+			const abilityParts = prereq.ability.map((ab) => {
 				const entries = Object.entries(ab);
 				return entries.map(([attr, val]) => `${getAbilityName(attr)} ${val}`).join(" and ");
 			});
 			if (abilityParts.length) prereqParts.push(abilityParts.join("; "));
 		}
 
-		if ((prereq as any).spellcasting) {
+		if (prereq.spellcasting) {
 			prereqParts.push("Spellcasting or Pact Magic feature");
 		}
 
-		if ((prereq as any).spellcasting2020) {
+		if (prereq.spellcasting2020) {
 			prereqParts.push("The ability to cast at least one spell");
 		}
 
-		if ((prereq as any).proficiency) {
-			const profParts = (prereq as any).proficiency.map((p: any) => {
+		if (prereq.proficiency) {
+			const profParts = prereq.proficiency.map((p) => {
 				if (p.armor) return `proficiency with ${p.armor} armor`;
 				if (p.weapon) return `proficiency with ${p.weapon} weapons`;
 				return "";
@@ -107,16 +109,15 @@ const getRenderedPrerequisite = (
 			if (profParts.length) prereqParts.push(profParts.join(" and "));
 		}
 
-		if ((prereq as any).background) {
-			const bgNames = (prereq as any).background.map((b: any) => {
-				if (typeof b === "string") return b;
+		if (prereq.background) {
+			const bgNames = prereq.background.map((b) => {
 				return b.name || "";
 			}).filter(Boolean);
 			if (bgNames.length) prereqParts.push(bgNames.join(" or ") + " background");
 		}
 
-		if ((prereq as any).other) {
-			prereqParts.push((prereq as any).other);
+		if (prereq.other) {
+			prereqParts.push(prereq.other);
 		}
 
 		if (prereqParts.length) {

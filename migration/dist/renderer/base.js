@@ -12,11 +12,35 @@ export const defaultRendererConfig = {
 export const isEntryObject = (entry) => {
     return typeof entry === "object" && entry !== null;
 };
+export const isEntryWrapped = (entry) => {
+    return entry.type === "wrapper";
+};
+export const isEntrySection = (entry) => {
+    return entry.type === "section";
+};
+export const hasEntries = (entry) => {
+    return "entries" in entry && Array.isArray(entry.entries);
+};
+export const hasEntry = (entry) => {
+    return "entry" in entry && entry.entry !== undefined;
+};
+export const hasTitle = (entry) => {
+    return "title" in entry && typeof entry.title === "string";
+};
+export const isEntryTableCell = (cell) => {
+    if (typeof cell !== "object" || cell === null)
+        return false;
+    const obj = cell;
+    // Check for explicit type: "cell" OR presence of roll property (table cell characteristic)
+    return obj.type === "cell" || obj.roll !== undefined;
+};
 export const getEntryType = (entry) => {
     if (typeof entry === "string")
         return "string";
     if (entry == null)
         return "null";
+    if (!("type" in entry))
+        return "entries";
     return entry.type ?? "entries";
 };
 // ============ Base Renderer Class ============
@@ -90,11 +114,14 @@ export class BaseRenderer {
         if (entry == null)
             return;
         // Handle wrapped entries
-        if (isEntryObject(entry) && entry.type === "wrapper") {
-            return this._recursiveRender(entry.wrapped, textStack, meta, options);
+        if (isEntryObject(entry) && isEntryWrapped(entry)) {
+            if (entry.wrapped) {
+                return this._recursiveRender(entry.wrapped, textStack, meta, options);
+            }
+            return;
         }
         // Handle section type (adjusts depth)
-        if (isEntryObject(entry) && entry.type === "section") {
+        if (isEntryObject(entry) && isEntrySection(entry)) {
             meta.depth = -1;
         }
         meta._didRenderPrefix = false;
@@ -250,7 +277,7 @@ export class BaseRenderer {
                 break;
             default:
                 // Unknown type - try to render as entries
-                if (entry.entries) {
+                if (hasEntries(entry)) {
                     this._renderEntries(entry, textStack, meta, options);
                 }
                 break;
@@ -294,7 +321,7 @@ export class BaseRenderer {
         this._renderInset(entry, textStack, meta, options);
     }
     _renderVariant(entry, textStack, meta, options) {
-        // Default: render as entries
+        // Default: render as entries - EntryVariant has entries property
         if (entry.entries) {
             this._renderEntries(entry, textStack, meta, options);
         }
@@ -360,9 +387,9 @@ export class BaseRenderer {
             // Legacy array format
             return entry.toRoll
                 .map((r) => {
-                const mod = r.modifier || r.mod || 0;
+                const mod = r.modifier ?? 0;
                 const modStr = mod > 0 ? `+${mod}` : mod < 0 ? String(mod) : "";
-                return `${r.number || 1}d${r.faces}${modStr}`;
+                return `${r.number ?? 1}d${r.faces}${modStr}`;
             })
                 .join("+");
         }
@@ -523,18 +550,19 @@ export class PlainTextRenderer extends BaseRenderer {
         if (entry.rows) {
             for (const row of entry.rows) {
                 if (Array.isArray(row)) {
-                    textStack[0] += row
+                    // Table rows can contain Entry or EntryTableCell (type def is incomplete)
+                    const cells = row;
+                    textStack[0] += cells
                         .map(cell => {
                         if (typeof cell === "string")
                             return stripTags(cell);
-                        if (typeof cell === "object" && cell !== null) {
-                            const cellObj = cell;
-                            if (cellObj.entry)
-                                return this.render(cellObj.entry);
-                            if (cellObj.roll?.exact != null)
-                                return String(cellObj.roll.exact);
-                            if (cellObj.roll?.min != null)
-                                return `${cellObj.roll.min}-${cellObj.roll.max}`;
+                        if (isEntryTableCell(cell)) {
+                            if (cell.entry)
+                                return this.render(cell.entry);
+                            if (cell.roll?.exact != null)
+                                return String(cell.roll.exact);
+                            if (cell.roll?.min != null)
+                                return `${cell.roll.min}-${cell.roll.max}`;
                         }
                         return String(cell);
                     })

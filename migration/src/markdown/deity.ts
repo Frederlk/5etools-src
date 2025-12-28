@@ -36,7 +36,14 @@ const getAlignmentText = (alignments: string[]): string => {
 	return toTitleCase(joined);
 };
 
-const BASE_PART_TRANSLATORS: Record<string, { name: string; displayFn?: (val: unknown) => string }> = {
+type DeityAttributeKey = "alignment" | "pantheon" | "category" | "domains" | "province" | "dogma" | "altNames" | "plane" | "worshipers" | "symbol";
+
+interface DeityPartTranslator {
+	name: string;
+	displayFn?: (val: unknown) => string;
+}
+
+const BASE_PART_TRANSLATORS: Record<DeityAttributeKey, DeityPartTranslator> = {
 	alignment: {
 		name: "Alignment",
 		displayFn: (it) => getAlignmentText(it as string[]),
@@ -76,8 +83,8 @@ const BASE_PART_TRANSLATORS: Record<string, { name: string; displayFn?: (val: un
 const getDeityRenderableEntriesMeta = (deity: DeityEntry): DeityEntriesMeta => {
 	const entriesAttributes: { name: string; entry: string }[] = [];
 
-	for (const [prop, { name, displayFn }] of Object.entries(BASE_PART_TRANSLATORS)) {
-		const value = (deity as unknown as Record<string, unknown>)[prop];
+	for (const [prop, { name, displayFn }] of Object.entries(BASE_PART_TRANSLATORS) as [DeityAttributeKey, DeityPartTranslator][]) {
+		const value = deity[prop];
 		if (value == null) continue;
 
 		const displayVal = displayFn ? displayFn(value) : String(value);

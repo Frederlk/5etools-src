@@ -1,4 +1,4 @@
-import type { Entry, EntryEntries, EntryList, EntryTable, EntryQuote, EntryInset, EntryInsetReadaloud, EntryVariant, EntryItem, EntryImage } from "../../../types/entry.js";
+import type { Entry, EntryObject, EntrySection, EntryList, EntryTable, EntryQuote, EntryInset, EntryInsetReadaloud, EntryVariant, EntryItem, EntryImage, EntryTableCell, EntryWrapped, EntryDice } from "../../../types/entry.js";
 import type { TextStack, RenderMeta, RenderOptions, StyleHint } from "./types.js";
 export interface RendererConfig {
     /** Default style hint */
@@ -9,7 +9,22 @@ export interface RendererConfig {
     baseUrl: string;
 }
 export declare const defaultRendererConfig: RendererConfig;
-export declare const isEntryObject: (entry: Entry) => entry is Exclude<Entry, string>;
+export declare const isEntryObject: (entry: Entry) => entry is EntryObject;
+export declare const isEntryWrapped: (entry: EntryObject) => entry is EntryWrapped;
+export declare const isEntrySection: (entry: EntryObject) => entry is EntrySection;
+export declare const hasEntries: (entry: EntryObject) => entry is EntryObject & {
+    entries: Entry[];
+};
+export declare const hasEntry: (entry: EntryObject) => entry is EntryObject & {
+    entry: Entry;
+};
+export declare const hasTitle: (entry: EntryObject) => entry is EntryObject & {
+    title: string;
+};
+export declare const isEntryTableCell: (cell: unknown) => cell is EntryTableCell;
+type EntryWithEntries = EntryObject & {
+    entries?: Entry[];
+};
 export declare const getEntryType: (entry: Entry) => string;
 /**
  * Abstract base renderer class.
@@ -49,16 +64,16 @@ export declare abstract class BaseRenderer {
     protected _renderSuffix(entry: Entry, textStack: TextStack, meta: RenderMeta, options: RenderOptions): void;
     /** Render a string entry (with tag processing) */
     protected abstract _renderString(entry: string, textStack: TextStack, meta: RenderMeta, options: RenderOptions): void;
-    /** Render an entries block */
-    protected abstract _renderEntries(entry: EntryEntries, textStack: TextStack, meta: RenderMeta, options: RenderOptions): void;
+    /** Render an entries block (accepts any entry type with entries property) */
+    protected abstract _renderEntries(entry: EntryWithEntries, textStack: TextStack, meta: RenderMeta, options: RenderOptions): void;
     /** Render a list */
     protected abstract _renderList(entry: EntryList, textStack: TextStack, meta: RenderMeta, options: RenderOptions): void;
     /** Render a table */
     protected abstract _renderTable(entry: EntryTable, textStack: TextStack, meta: RenderMeta, options: RenderOptions): void;
     /** Render a quote */
     protected abstract _renderQuote(entry: EntryQuote, textStack: TextStack, meta: RenderMeta, options: RenderOptions): void;
-    /** Render an inset */
-    protected abstract _renderInset(entry: EntryInset, textStack: TextStack, meta: RenderMeta, options: RenderOptions): void;
+    /** Render an inset (accepts both inset and insetReadaloud types) */
+    protected abstract _renderInset(entry: EntryInset | EntryInsetReadaloud, textStack: TextStack, meta: RenderMeta, options: RenderOptions): void;
     /** Render an item */
     protected abstract _renderItem(entry: EntryItem, textStack: TextStack, meta: RenderMeta, options: RenderOptions): void;
     /** Render an image */
@@ -78,7 +93,7 @@ export declare abstract class BaseRenderer {
     protected _renderBonus(entry: any, textStack: TextStack, meta: RenderMeta, options: RenderOptions): void;
     protected _renderBonusSpeed(entry: any, textStack: TextStack, meta: RenderMeta, options: RenderOptions): void;
     protected _renderDice(entry: any, textStack: TextStack, meta: RenderMeta, options: RenderOptions): void;
-    protected _getDiceString(entry: any): string;
+    protected _getDiceString(entry: EntryDice): string;
     protected _renderLink(entry: any, textStack: TextStack, meta: RenderMeta, options: RenderOptions): void;
     protected _renderItemSub(entry: any, textStack: TextStack, meta: RenderMeta, options: RenderOptions): void;
     protected _renderItemSpell(entry: any, textStack: TextStack, meta: RenderMeta, options: RenderOptions): void;
@@ -109,11 +124,11 @@ export declare abstract class BaseRenderer {
  */
 export declare class PlainTextRenderer extends BaseRenderer {
     protected _renderString(entry: string, textStack: TextStack, meta: RenderMeta, options: RenderOptions): void;
-    protected _renderEntries(entry: EntryEntries, textStack: TextStack, meta: RenderMeta, options: RenderOptions): void;
+    protected _renderEntries(entry: EntryWithEntries, textStack: TextStack, meta: RenderMeta, options: RenderOptions): void;
     protected _renderList(entry: EntryList, textStack: TextStack, meta: RenderMeta, options: RenderOptions): void;
     protected _renderTable(entry: EntryTable, textStack: TextStack, meta: RenderMeta, options: RenderOptions): void;
     protected _renderQuote(entry: EntryQuote, textStack: TextStack, meta: RenderMeta, options: RenderOptions): void;
-    protected _renderInset(entry: EntryInset, textStack: TextStack, meta: RenderMeta, options: RenderOptions): void;
+    protected _renderInset(entry: EntryInset | EntryInsetReadaloud, textStack: TextStack, meta: RenderMeta, options: RenderOptions): void;
     protected _renderItem(entry: EntryItem, textStack: TextStack, meta: RenderMeta, options: RenderOptions): void;
     protected _renderImage(entry: EntryImage, textStack: TextStack, meta: RenderMeta, options: RenderOptions): void;
 }
@@ -122,4 +137,5 @@ export declare class PlainTextRenderer extends BaseRenderer {
  */
 export declare const createPlainTextRenderer: (config?: Partial<RendererConfig>) => PlainTextRenderer;
 export declare const getPlainTextRenderer: () => PlainTextRenderer;
+export {};
 //# sourceMappingURL=base.d.ts.map

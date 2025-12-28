@@ -13,7 +13,8 @@ import {
 	getColumnCount,
 	RollColMode,
 } from "./table.js";
-import type { EntryTable, EntryTableRow } from "../../../types/entry.js";
+import type { EntryTable, EntryTableRow, EntryTableHeaderCell } from "../../../types/entry.js";
+import type { HeaderRowMeta } from "./table.js";
 
 describe("table", () => {
 	describe("getRowCells", () => {
@@ -131,15 +132,15 @@ describe("table", () => {
 		});
 
 		it("should use width property from header cells", () => {
-			const row = [
-				{ type: "cell", entry: "Wide", width: 2 },
+			const row: HeaderRowMeta = [
+				{ type: "cell", entry: "Wide", width: 2 } as EntryTableHeaderCell,
 				"Normal",
-			] as any;
+			];
 			expect(getHeaderRowSpanWidth(row)).toBe(3);
 		});
 
 		it("should default to width 1 for cells without width", () => {
-			const row = [{ type: "cell", entry: "Normal" }, "Text"] as any;
+			const row: HeaderRowMeta = [{ type: "cell", entry: "Normal" } as EntryTableHeaderCell, "Text"];
 			expect(getHeaderRowSpanWidth(row)).toBe(2);
 		});
 
@@ -148,10 +149,10 @@ describe("table", () => {
 		});
 
 		it("should sum multiple wide cells", () => {
-			const row = [
-				{ type: "cell", entry: "A", width: 3 },
-				{ type: "cell", entry: "B", width: 2 },
-			] as any;
+			const row: HeaderRowMeta = [
+				{ type: "cell", entry: "A", width: 3 } as EntryTableHeaderCell,
+				{ type: "cell", entry: "B", width: 2 } as EntryTableHeaderCell,
+			];
 			expect(getHeaderRowSpanWidth(row)).toBe(5);
 		});
 	});

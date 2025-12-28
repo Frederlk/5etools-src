@@ -321,7 +321,8 @@ export class MonsterMarkdownRendererBase {
         };
     }
     _getCommonMdParts_name(mon) {
-        return `>## ${mon._displayName || mon.name}`;
+        const monExt = mon;
+        return `>## ${monExt._displayName || mon.name}`;
     }
     _getCommonMdParts_sizeTypeAlignment(mon) {
         const typeStr = getMonsterTypeString(mon.type);
@@ -352,9 +353,10 @@ export class MonsterMarkdownRendererBase {
     }
     _getCommonMdParts_hpResource(mon) {
         const hpPart = getHpString(mon.hp);
+        const monExt = mon;
         let resourcePart = "";
-        if (mon.resource?.length) {
-            resourcePart = mon.resource
+        if (monExt.resource?.length) {
+            resourcePart = monExt.resource
                 .map((res) => `\n>- **${res.name}** ${this._getResourceString(res)}`)
                 .join("");
         }
@@ -390,11 +392,27 @@ export class MonsterMarkdownRendererBase {
         return "";
     }
     _getCommonMdParts_abilityScores(mon) {
-        return markdownUtils.getRenderedAbilityScores(mon, { prefix: ">" });
+        const getScore = (val) => {
+            if (val == null)
+                return val;
+            if (typeof val === "number")
+                return val;
+            return null;
+        };
+        const abilityScores = {
+            str: getScore(mon.str),
+            dex: getScore(mon.dex),
+            con: getScore(mon.con),
+            int: getScore(mon.int),
+            wis: getScore(mon.wis),
+            cha: getScore(mon.cha),
+        };
+        return markdownUtils.getRenderedAbilityScores(abilityScores, { prefix: ">" });
     }
     _getCommonMdParts_save(mon) {
         if (!mon.save)
             return "";
+        const saveExt = mon.save;
         const saves = Object.keys(mon.save)
             .filter(k => k !== "special")
             .sort(ascSortAtts)
@@ -402,8 +420,8 @@ export class MonsterMarkdownRendererBase {
             const val = mon.save[attr];
             return `${attr.charAt(0).toUpperCase() + attr.slice(1)} ${val}`;
         });
-        if (mon.save.special) {
-            saves.push(stripTags(mon.save.special));
+        if (saveExt.special) {
+            saves.push(stripTags(saveExt.special));
         }
         return saves.length ? `\n>- **Saving Throws** ${saves.join(", ")}` : "";
     }
@@ -415,12 +433,13 @@ export class MonsterMarkdownRendererBase {
     _getSkillsString(mon) {
         if (!mon.skill)
             return "";
+        const skillExt = mon.skill;
         const skills = Object.keys(mon.skill)
             .filter(k => k !== "other" && k !== "special")
             .sort()
-            .map(s => `${s.charAt(0).toUpperCase() + s.slice(1)} ${mon.skill[s]}`);
-        if (mon.skill.other) {
-            for (const other of mon.skill.other) {
+            .map(s => `${s.charAt(0).toUpperCase() + s.slice(1)} ${skillExt[s]}`);
+        if (skillExt.other) {
+            for (const other of skillExt.other) {
                 if (other.oneOf) {
                     const oneOfStr = Object.keys(other.oneOf)
                         .sort()
@@ -430,21 +449,22 @@ export class MonsterMarkdownRendererBase {
                 }
             }
         }
-        if (mon.skill.special) {
-            skills.push(stripTags(mon.skill.special));
+        if (skillExt.special) {
+            skills.push(stripTags(skillExt.special));
         }
         return skills.join(", ");
     }
     _getCommonMdParts_tool(mon) {
-        if (!mon.tool)
+        const monExt = mon;
+        if (!monExt.tool)
             return "";
         return `\n>- **Tools** ${this._getToolsString(mon)}`;
     }
     _getToolsString(mon) {
-        const tool = mon.tool;
-        if (!tool)
+        const monExt = mon;
+        if (!monExt.tool)
             return "";
-        return Object.entries(tool)
+        return Object.entries(monExt.tool)
             .map(([uid, bonus]) => {
             const name = uid.split("|")[0];
             return `${name.charAt(0).toUpperCase() + name.slice(1)} ${bonus}`;
@@ -614,12 +634,14 @@ export class MonsterMarkdownRendererBase {
         return result;
     }
     _getLegendaryIntro(mon) {
-        const name = mon._displayName || mon.name;
+        const monExt = mon;
+        const name = monExt._displayName || mon.name;
         const actionCount = mon.legendaryActions || 3;
         return `The ${name.toLowerCase()} can take ${actionCount} legendary action${actionCount === 1 ? "" : "s"}, choosing from the options below. Only one legendary action can be used at a time and only at the end of another creature's turn. The ${name.toLowerCase()} regains spent legendary actions at the start of its turn.`;
     }
     _getMythicIntro(mon) {
-        const name = mon._displayName || mon.name;
+        const monExt = mon;
+        const name = monExt._displayName || mon.name;
         return `If ${name}'s mythic trait is active, it can use the options below as legendary actions.`;
     }
 }
@@ -711,10 +733,10 @@ ${common.mdPtPb}
         return `\n>- **Immunities** ${parts.join("; ")}`;
     }
     _getMdParts_gear(mon, renderer) {
-        const gear = mon.gear;
-        if (!gear?.length)
+        const monExt = mon;
+        if (!monExt.gear?.length)
             return "";
-        const gearStr = gear.map((g) => stripTags(g)).join(", ");
+        const gearStr = monExt.gear.map((g) => stripTags(g)).join(", ");
         return `\n>- **Gear** ${gearStr}`;
     }
 }

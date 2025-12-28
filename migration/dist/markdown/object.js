@@ -145,15 +145,17 @@ const getCargoCapacity = (obj) => {
         return null;
     return `${obj.capCargo} ton${obj.capCargo === 1 ? "" : "s"}`;
 };
+const getAbilityScore = (obj, ab) => {
+    return obj[ab];
+};
 const getAbilityScoresString = (obj) => {
-    const objAny = obj;
-    const hasAbilities = ABIL_ABVS.some(ab => objAny[ab] != null);
+    const hasAbilities = ABIL_ABVS.some(ab => getAbilityScore(obj, ab) != null);
     if (!hasAbilities)
         return null;
     const abilityParts = ABIL_ABVS
-        .filter(ab => objAny[ab] != null)
+        .filter(ab => getAbilityScore(obj, ab) != null)
         .map(ab => {
-        const score = objAny[ab];
+        const score = getAbilityScore(obj, ab);
         const mod = getAbilityModNumber(score);
         const modStr = mod >= 0 ? `+${mod}` : `${mod}`;
         return `${ab.toUpperCase()}\u00A0${score} (${modStr})`;

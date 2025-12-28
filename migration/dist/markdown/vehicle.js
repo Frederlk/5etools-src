@@ -4,6 +4,14 @@
 import { createRenderMeta } from "../renderer/types.js";
 import { stripTags } from "../renderer/tags.js";
 import { getMarkdownRenderer, markdownUtils } from "./renderer.js";
+const extractAbilityScores = (ent) => ({
+    str: ent.str,
+    dex: ent.dex,
+    con: ent.con,
+    int: ent.int,
+    wis: ent.wis,
+    cha: ent.cha,
+});
 // ============ Renderable Entries Meta Generators ============
 const getVehicleRenderableEntriesMeta = (ent) => {
     const ship = ent;
@@ -157,8 +165,6 @@ const getSpelljammerRenderableEntriesMeta = (ent) => {
     if (ent.cost != null) {
         rows.push(["Cost", `${ent.cost.toLocaleString()} gp`]);
     }
-    // Cast to unknown first to bypass strict type checking for table rows
-    // The runtime renderer handles plain arrays of strings
     const tableEntry = {
         type: "table",
         colStyles: ["col-6", "col-6"],
@@ -201,8 +207,6 @@ const getElementalAirshipRenderableEntriesMeta = (ent) => {
     if (ent.cost != null) {
         rows.push(["Cost", `${ent.cost.toLocaleString()} gp`]);
     }
-    // Cast to unknown first to bypass strict type checking for table rows
-    // The runtime renderer handles plain arrays of strings
     const tableEntry = {
         type: "table",
         colStyles: ["col-6", "col-6"],
@@ -444,7 +448,7 @@ const getRenderedStringShip = (ent, opts) => {
         `## ${ent.name}`,
         renderer.render(entriesMetaShip.entrySizeDimensions),
         shipHelpers.getCrewCargoPaceSection_(ent, { entriesMetaShip }),
-        markdownUtils.getRenderedAbilityScores(ent),
+        markdownUtils.getRenderedAbilityScores(extractAbilityScores(ent)),
         entriesMeta.entryDamageVulnerabilities ? renderer.render(entriesMeta.entryDamageVulnerabilities) : null,
         entriesMeta.entryDamageResistances ? renderer.render(entriesMeta.entryDamageResistances) : null,
         entriesMeta.entryDamageImmunities ? renderer.render(entriesMeta.entryDamageImmunities) : null,
@@ -520,7 +524,7 @@ const getRenderedStringInfwar = (ent, opts) => {
         entriesMetaInfwar.entryHitPoints ? renderer.render(entriesMetaInfwar.entryHitPoints) : null,
         entriesMetaInfwar.entrySpeed ? renderer.render(entriesMetaInfwar.entrySpeed) : null,
         entriesMetaInfwar.entrySpeedNote ? renderer.render(entriesMetaInfwar.entrySpeedNote) : null,
-        markdownUtils.getRenderedAbilityScores(ent),
+        markdownUtils.getRenderedAbilityScores(extractAbilityScores(ent)),
         entriesMeta.entryDamageVulnerabilities ? renderer.render(entriesMeta.entryDamageVulnerabilities) : null,
         entriesMeta.entryDamageResistances ? renderer.render(entriesMeta.entryDamageResistances) : null,
         entriesMeta.entryDamageImmunities ? renderer.render(entriesMeta.entryDamageImmunities) : null,
@@ -621,7 +625,7 @@ export class VehicleMarkdownRenderer {
             return getVehicleUpgradeCompactRenderedString(ent, opts);
         }
         const vehicle = ent;
-        const vehicleType = vehicle.vehicleType || "SHIP";
+        const vehicleType = vehicle.vehicleType ?? "SHIP";
         switch (vehicleType) {
             case "SHIP":
                 return getRenderedStringShip(vehicle, opts);

@@ -15,19 +15,31 @@ export interface ConvertedEntry extends Record<string, unknown> {
 	entries?: Entry[];
 }
 
+// Buffer item type: can hold strings, converted entries, block metadata, or entry types during processing
+type BufferItem = string | ConvertedEntry | MdBlockMeta | EntryTable | EntryList;
+
 export interface TablePostProcessOptions {
 	tableWidth?: number;
 	diceColWidth?: number;
 }
 
-// Internal table type that matches what the converter actually produces
-// The converter creates simple string[][] for rows (legacy behavior)
-interface ConverterEntryTable {
-	type: "table";
-	caption?: string;
+// Internal table type used during conversion
+// This is a subset of EntryTable used during processing where rows are simple string arrays
+// The type is compatible with EntryTable since string is Entry, and string[] is Entry[]
+interface ConverterEntryTable extends Omit<EntryTable, "colLabels" | "rows"> {
 	colLabels?: string[];
-	colStyles?: string[];
 	rows?: string[][];
+}
+
+// Type guard to check if a table has simple string[][] rows (converter output format)
+function isConverterTable(tbl: EntryTable): tbl is EntryTable & { rows?: string[][] } {
+	if (!tbl.rows) return true;
+	return tbl.rows.every(row => Array.isArray(row) && row.every(cell => typeof cell === "string" || typeof cell === "object"));
+}
+
+// Convert ConverterEntryTable to EntryTable (safe widening - string[] -> Entry[])
+function toEntryTable(tbl: ConverterEntryTable): EntryTable {
+	return tbl as EntryTable;
 }
 
 interface MdBlockMeta {
@@ -90,7 +102,7 @@ export class MarkdownConverter {
 
 		mdStr = this._getCleanGmBinder(mdStr);
 
-		const buf: (string | ConvertedEntry | MdBlockMeta)[] = mdStr.split("\n").map(line => line.trimEnd());
+		const buf: BufferItem[] = mdStr.split("\n").map(line => line.trimEnd());
 
 		this._coalesceCreatures(buf);
 		this._convertCreatures(buf);
@@ -127,7 +139,7 @@ export class MarkdownConverter {
 
 	// ============ Creature Handling ============
 
-	private static _coalesceCreatures(buf: (string | ConvertedEntry | MdBlockMeta)[]): void {
+	private static _coalesceCreatures(buf: BufferItem[]): void {
 		for (let i = 0; i < buf.length; ++i) {
 			const line = typeof buf[i] === "string" ? (buf[i] as string).trim() : "";
 
@@ -153,7 +165,7 @@ export class MarkdownConverter {
 		}
 	}
 
-	private static _convertCreatures(buf: (string | ConvertedEntry | MdBlockMeta)[]): void {
+	private static _convertCreatures(buf: BufferItem[]): void {
 		for (let i = 0; i < buf.length; ++i) {
 			const line = buf[i];
 			if (typeof line === "string") continue;
@@ -171,7 +183,7 @@ export class MarkdownConverter {
 
 	// ============ Inset/Readaloud Handling ============
 
-	private static _coalesceInsetsReadalouds(buf: (string | ConvertedEntry | MdBlockMeta)[]): void {
+	private static _coalesceInsetsReadalouds(buf: BufferItem[]): void {
 		const getCleanLine = (l: string): string => l.replace(/^>>?\s*/, "");
 
 		for (let i = 0; i < buf.length; ++i) {
@@ -216,7 +228,7 @@ export class MarkdownConverter {
 		return l.trim().startsWith(">");
 	}
 
-	private static _convertInsetsReadalouds(buf: (string | ConvertedEntry | MdBlockMeta)[]): void {
+	private static _convertInsetsReadalouds(buf: BufferItem[]): void {
 		for (let i = 0; i < buf.length; ++i) {
 			const line = buf[i];
 			if (typeof line === "string") continue;
@@ -237,7 +249,7 @@ export class MarkdownConverter {
 	// ============ Table Handling ============
 
 	private static _coalesce_getLastH5Index(
-		line: string | ConvertedEntry | MdBlockMeta,
+		line: BufferItem,
 		i: number,
 		curCaptionIx: number
 	): number {
@@ -250,7 +262,7 @@ export class MarkdownConverter {
 		return curCaptionIx;
 	}
 
-	private static _coalesceTables(buf: (string | ConvertedEntry | MdBlockMeta)[]): void {
+	private static _coalesceTables(buf: BufferItem[]): void {
 		let lastCaptionIx = -1;
 
 		for (let i = 0; i < buf.length; ++i) {
@@ -291,14 +303,14 @@ export class MarkdownConverter {
 		}
 	}
 
-	private static _coalesceTables_isTableLine(l: string | ConvertedEntry | MdBlockMeta): boolean {
+	private static _coalesceTables_isTableLine(l: BufferItem): boolean {
 		if (typeof l !== "string") return false;
 		l = l.trim();
 		if (!l.includes("|")) return false;
 		return !/^#+ /.test(l) && !l.startsWith("> ") && !/^[-*+]/.test(l);
 	}
 
-	private static _convertTables(buf: (string | ConvertedEntry | MdBlockMeta)[]): void {
+	private static _convertTables(buf: BufferItem[]): void {
 		for (let i = 0; i < buf.length; ++i) {
 			const line = buf[i];
 			if (typeof line === "string") continue;
@@ -310,14 +322,14 @@ export class MarkdownConverter {
 				if ((entry as MdBlockMeta).mdType !== "table") continue;
 
 				const meta = entry as MdBlockMeta;
-				buf[i] = this.getConvertedTable(meta.lines, meta.caption) as unknown as ConvertedEntry;
+				buf[i] = this.getConvertedTable(meta.lines, meta.caption);
 			}
 		}
 	}
 
 	// ============ List Handling ============
 
-	private static _coalesceLists(buf: (string | ConvertedEntry | MdBlockMeta)[]): void {
+	private static _coalesceLists(buf: BufferItem[]): void {
 		for (let i = 0; i < buf.length; ++i) {
 			const line = buf[i];
 
@@ -351,7 +363,7 @@ export class MarkdownConverter {
 		return /^(\s*)\* /.test(line) || /^(\s*)- /.test(line) || /^(\s*)\+ /.test(line);
 	}
 
-	private static _convertLists(buf: (string | ConvertedEntry | MdBlockMeta)[]): void {
+	private static _convertLists(buf: BufferItem[]): void {
 		for (let i = 0; i < buf.length; ++i) {
 			const line = buf[i];
 			if (typeof line === "string") continue;
@@ -385,7 +397,7 @@ export class MarkdownConverter {
 							last(stack)!.items!.push(lText);
 						} else if (depth > stackDepth) {
 							const list: EntryList = { type: "list", items: [lText] };
-							last(stack)!.items!.push(list as unknown as Entry);
+							last(stack)!.items!.push(list);
 							stack.push(list);
 						} else if (depth < stackDepth) {
 							while (depth < getStackDepth()!) stack.pop();
@@ -396,7 +408,7 @@ export class MarkdownConverter {
 					}
 				});
 
-				buf.splice(i, 1, stack[0] as unknown as ConvertedEntry);
+				buf.splice(i, 1, stack[0]);
 			}
 		}
 	}
@@ -443,7 +455,7 @@ export class MarkdownConverter {
 
 	// ============ Header Handling ============
 
-	private static _coalesceHeaders(buf: (string | ConvertedEntry | MdBlockMeta)[]): void {
+	private static _coalesceHeaders(buf: BufferItem[]): void {
 		const stack: ConvertedEntry[] = [];
 
 		const i = { _: 0 };
@@ -517,7 +529,7 @@ export class MarkdownConverter {
 	}
 
 	private static _coalesceHeaders_addBlock(
-		buf: (string | ConvertedEntry | MdBlockMeta)[],
+		buf: BufferItem[],
 		i: { _: number },
 		stack: ConvertedEntry[],
 		depth: number,
@@ -551,7 +563,7 @@ export class MarkdownConverter {
 	}
 
 	private static _coalesceHeaders_handleEqual(
-		buf: (string | ConvertedEntry | MdBlockMeta)[],
+		buf: BufferItem[],
 		i: { _: number },
 		stack: ConvertedEntry[],
 		depth: number,
@@ -592,7 +604,7 @@ export class MarkdownConverter {
 	}
 
 	private static _coalesceHeaders_handleTooDeep(
-		buf: (string | ConvertedEntry | MdBlockMeta)[],
+		buf: BufferItem[],
 		i: { _: number },
 		stack: ConvertedEntry[],
 		depth: number,
@@ -605,7 +617,7 @@ export class MarkdownConverter {
 
 	// ============ Inline Styling ============
 
-	private static _convertInlineStyling(buf: (string | ConvertedEntry | MdBlockMeta)[]): void {
+	private static _convertInlineStyling(buf: BufferItem[]): void {
 		const handlers: WalkerHandlers = {
 			object: (obj): Record<string, unknown> => {
 				const record = obj as Record<string, unknown>;
@@ -641,29 +653,29 @@ export class MarkdownConverter {
 		const walker = getWalker();
 		const nxtBuf = walker.walk(buf, handlers);
 		while (buf.length) buf.pop();
-		buf.push(...(nxtBuf as (string | ConvertedEntry | MdBlockMeta)[]));
+		buf.push(...(nxtBuf as BufferItem[]));
 	}
 
 	// ============ Cleanup ============
 
-	private static _cleanEmptyLines(buf: (string | ConvertedEntry | MdBlockMeta)[]): void {
+	private static _cleanEmptyLines(buf: BufferItem[]): void {
 		const handlersDoTrim: WalkerHandlers = {
 			array: (arr): unknown[] => arr.map(it => (typeof it === "string" ? it.trim() : it)),
 		};
 		const walker = getWalker();
 		const nxtBufTrim = walker.walk(buf, handlersDoTrim);
 		while (buf.length) buf.pop();
-		buf.push(...(nxtBufTrim as (string | ConvertedEntry | MdBlockMeta)[]));
+		buf.push(...(nxtBufTrim as BufferItem[]));
 
 		const handlersRmEmpty: WalkerHandlers = {
 			array: (arr): unknown[] => arr.filter(it => it && (typeof it !== "string" || it.trim())),
 		};
 		const nxtBufRmEmpty = walker.walk(buf, handlersRmEmpty);
 		while (buf.length) buf.pop();
-		buf.push(...(nxtBufRmEmpty as (string | ConvertedEntry | MdBlockMeta)[]));
+		buf.push(...(nxtBufRmEmpty as BufferItem[]));
 	}
 
-	private static _cleanEntries(buf: (string | ConvertedEntry | MdBlockMeta)[]): void {
+	private static _cleanEntries(buf: BufferItem[]): void {
 		const recursiveClean = (obj: unknown): void => {
 			if (typeof obj === "object" && obj !== null) {
 				if (Array.isArray(obj)) {
@@ -689,12 +701,12 @@ export class MarkdownConverter {
 
 	private static _coalesceConvert_doRecurse(
 		obj: ConvertedEntry,
-		fn: (buf: (string | ConvertedEntry | MdBlockMeta)[]) => void
+		fn: (buf: BufferItem[]) => void
 	): void {
 		if (typeof obj !== "object") throw new TypeError(`Non-object ${obj} passed to object handler!`);
 
 		if (Array.isArray(obj)) {
-			fn(obj);
+			fn(obj as BufferItem[]);
 
 			obj.forEach(it => {
 				if (typeof it !== "object") return;
@@ -762,13 +774,16 @@ export class MarkdownConverter {
 
 		tbl.colStyles = alignment;
 		this._postProcessTableInternal(tbl);
-		// Cast to EntryTable - the structure is compatible at runtime
-		return tbl as unknown as EntryTable;
+		// Safe widening: string[] -> Entry[] since string is a valid Entry
+		return toEntryTable(tbl);
 	}
 
 	static postProcessTable(tbl: EntryTable, opts: TablePostProcessOptions = {}): void {
-		// Cast to internal type for processing (rows are actually string[][])
-		this._postProcessTableInternal(tbl as unknown as ConverterEntryTable, opts);
+		// Process table - the internal method handles both EntryTable and ConverterEntryTable
+		// since it only accesses properties that exist on both types
+		if (isConverterTable(tbl)) {
+			this._postProcessTableInternal(tbl as ConverterEntryTable, opts);
+		}
 	}
 
 	private static _postProcessTableInternal(tbl: ConverterEntryTable, opts: TablePostProcessOptions = {}): void {

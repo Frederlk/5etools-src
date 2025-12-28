@@ -54,7 +54,8 @@ export declare const findMapped: <T, R>(arr: T[], fnMapFind: (item: T, index: nu
 /**
  * Remove duplicates from array
  */
-export declare const unique: <T, K = T>(arr: T[], fnGetProp?: (item: T, index: number, array: T[]) => K) => T[];
+export declare function unique<T>(arr: T[]): T[];
+export declare function unique<T, K>(arr: T[], fnGetProp: (item: T, index: number, array: T[]) => K): T[];
 /**
  * Zip two arrays together
  */

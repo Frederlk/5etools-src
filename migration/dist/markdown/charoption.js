@@ -33,17 +33,13 @@ const getRenderedPrerequisite = (ent, renderer) => {
             else if (level.level) {
                 prereqParts.push(`Level ${level.level}`);
                 if (level.class) {
-                    const className = typeof level.class === "string"
-                        ? level.class
-                        : level.class.name;
+                    const className = level.class.name;
                     prereqParts.push(className);
                 }
             }
         }
         if (prereq.race) {
             const raceNames = prereq.race.map((r) => {
-                if (typeof r === "string")
-                    return r;
                 let name = r.name || "";
                 if (r.subrace)
                     name += ` (${r.subrace})`;
@@ -79,8 +75,6 @@ const getRenderedPrerequisite = (ent, renderer) => {
         }
         if (prereq.background) {
             const bgNames = prereq.background.map((b) => {
-                if (typeof b === "string")
-                    return b;
                 return b.name || "";
             }).filter(Boolean);
             if (bgNames.length)

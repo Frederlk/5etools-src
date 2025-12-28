@@ -1,4 +1,5 @@
 import type { Monster } from "../../../types/bestiary/bestiary.js";
+import type { MonsterResource } from "../types/monster-extended.js";
 import type { RenderMeta, StyleHint, CompactRenderResult } from "../renderer/types.js";
 import { type MarkdownRenderer } from "./renderer.js";
 export interface MonsterRenderOptions {
@@ -45,7 +46,7 @@ export declare abstract class MonsterMarkdownRendererBase {
     protected _getOrdinal(n: number): string;
     protected _getCommonMdParts_ac(mon: Monster, renderer: MarkdownRenderer): string;
     protected _getCommonMdParts_hpResource(mon: Monster): string;
-    protected _getResourceString(res: any): string;
+    protected _getResourceString(res: MonsterResource): string;
     protected _getCommonMdParts_speedInitiative(mon: Monster): string;
     protected _getInitiativeString(mon: Monster): string;
     protected _getCommonMdParts_abilityScores(mon: Monster): string;

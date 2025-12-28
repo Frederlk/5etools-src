@@ -18,7 +18,7 @@ import type { Size, Speed } from "../../../types/util.js";
 import type { RenderMeta, StyleHint } from "../renderer/types.js";
 import { createRenderMeta } from "../renderer/types.js";
 import { stripTags } from "../renderer/tags.js";
-import { ABIL_ABVS, getAbilityModNumber } from "../parser/attributes.js";
+import { ABIL_ABVS, getAbilityModNumber, type AbilityScore } from "../parser/attributes.js";
 import { getMarkdownRenderer, markdownUtils, type MarkdownRenderer } from "./renderer.js";
 
 // ============ Types ============
@@ -195,15 +195,18 @@ const getCargoCapacity = (obj: ObjectEntry): string | null => {
 	return `${obj.capCargo} ton${obj.capCargo === 1 ? "" : "s"}`;
 };
 
+const getAbilityScore = (obj: ObjectEntry, ab: AbilityScore): number | undefined => {
+	return obj[ab];
+};
+
 const getAbilityScoresString = (obj: ObjectEntry): string | null => {
-	const objAny = obj as unknown as Record<string, number | undefined>;
-	const hasAbilities = ABIL_ABVS.some(ab => objAny[ab] != null);
+	const hasAbilities = ABIL_ABVS.some(ab => getAbilityScore(obj, ab) != null);
 	if (!hasAbilities) return null;
 
 	const abilityParts = ABIL_ABVS
-		.filter(ab => objAny[ab] != null)
+		.filter(ab => getAbilityScore(obj, ab) != null)
 		.map(ab => {
-			const score = objAny[ab]!;
+			const score = getAbilityScore(obj, ab)!;
 			const mod = getAbilityModNumber(score);
 			const modStr = mod >= 0 ? `+${mod}` : `${mod}`;
 			return `${ab.toUpperCase()}\u00A0${score} (${modStr})`;

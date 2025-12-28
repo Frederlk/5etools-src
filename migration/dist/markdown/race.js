@@ -23,10 +23,6 @@ const getHeightAndWeightEntries = (race) => {
         cellHeightMod,
         cellWeightMod,
     ];
-    // NOTE: The renderer handles both raw string arrays and {type: "row", row: [...]} format.
-    // We use the raw array format for simplicity, matching the original JS implementation.
-    // The type assertion is needed because EntryTable.rows expects EntryTableRow[],
-    // but the renderer's _renderTable method handles both formats via runtime checks.
     const tableEntry = {
         type: "table",
         caption: "Random Height and Weight",

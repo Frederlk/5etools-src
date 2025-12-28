@@ -177,7 +177,7 @@ export interface TraitEntry {
     rendered?: string;
     type?: string;
 }
-export type RenderFn = (entry: string | Entry | Entry[]) => string;
+export type RenderFn = (entry: string | Entry | Entry[] | SpellcastingEntry) => string;
 export declare const CHILD_PROPS: readonly ["action", "bonus", "reaction", "trait", "legendary", "mythic", "variant", "spellcasting"];
 export declare const CHILD_PROPS__SPELLCASTING_DISPLAY_AS: readonly ["trait", "action", "bonus", "reaction", "legendary", "mythic"];
 export declare const getShortName: (mon: Monster, { isTitleCase, isSentenceCase, isUseDisplayName }?: ShortNameOptions) => string;

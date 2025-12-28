@@ -60,13 +60,13 @@ export const getRowCells = (row: TableRowInput): unknown[] | null => {
  * @returns Array of header row metadata or null if no labels
  */
 export const getHeaderRowMetas = (ent: EntryTable): HeaderRowMeta[] | null => {
-	if (!ent.colLabels?.length && !(ent as any).colLabelRows?.length) return null;
+	if (!ent.colLabels?.length && !ent.colLabelRows?.length) return null;
 
 	// Simple case: single row of column labels
 	if (ent.colLabels?.length) return [ent.colLabels];
 
 	// Multiple header rows
-	const colLabelRows = (ent as any).colLabelRows as HeaderRowMeta[];
+	const colLabelRows = ent.colLabelRows as HeaderRowMeta[];
 
 	// Calculate widths for each row
 	const lenPer = colLabelRows.map(row => getHeaderRowSpanWidth(row));

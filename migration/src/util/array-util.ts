@@ -162,15 +162,17 @@ export const findMapped = <T, R>(
 /**
  * Remove duplicates from array
  */
-export const unique = <T, K = T>(arr: T[], fnGetProp?: (item: T, index: number, array: T[]) => K): T[] => {
-	const seen = new Set<K>();
+export function unique<T>(arr: T[]): T[];
+export function unique<T, K>(arr: T[], fnGetProp: (item: T, index: number, array: T[]) => K): T[];
+export function unique<T, K = T>(arr: T[], fnGetProp?: (item: T, index: number, array: T[]) => K): T[] {
+	const seen = new Set<T | K>();
 	return arr.filter((item, index, array) => {
-		const val = fnGetProp ? fnGetProp(item, index, array) : (item as unknown as K);
+		const val = fnGetProp ? fnGetProp(item, index, array) : item;
 		if (seen.has(val)) return false;
 		seen.add(val);
 		return true;
 	});
-};
+}
 
 /**
  * Zip two arrays together

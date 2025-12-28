@@ -98,12 +98,11 @@ const getRenderedPrerequisite = (ent) => {
             prereqParts.push(prereq.other);
         }
         if (prereq.facility) {
-            const facilities = prereq.facility;
-            if (Array.isArray(facilities)) {
-                const facilityNames = facilities.map((f) => typeof f === "string" ? f : f.name || "").filter(Boolean);
-                if (facilityNames.length) {
-                    prereqParts.push(facilityNames.join(" or "));
-                }
+            const facilityNames = prereq.facility
+                .map(f => typeof f === "string" ? f : f.name || "")
+                .filter(Boolean);
+            if (facilityNames.length) {
+                prereqParts.push(facilityNames.join(" or "));
             }
         }
         if (prereqParts.length) {

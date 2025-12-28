@@ -91,8 +91,9 @@ export interface EntryTable extends EntryBase {
 	type: "table";
 	caption?: string;
 	colLabels?: (string | EntryTableHeaderCell)[];
+	colLabelRows?: (string | EntryTableHeaderCell)[][];
 	colStyles?: string[];
-	rows?: EntryTableRow[];
+	rows?: (Entry[] | EntryTableRow)[];
 	rowStyles?: string[];
 	footnotes?: Entry[];
 	intro?: Entry[];

@@ -161,7 +161,7 @@ export class RecipeMarkdownRenderer {
                 entriesMeta.entryMakes,
                 entriesMeta.entryServes,
                 entriesMeta.entryIngredients,
-            ].filter(Boolean);
+            ].filter((e) => e != null);
             const entFull = {
                 ...recipe,
                 entries,

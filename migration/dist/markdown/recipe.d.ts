@@ -1,4 +1,4 @@
-import type { Entry } from "../../../types/entry.js";
+import type { Entry, EntryEntries } from "../../../types/entry.js";
 import type { Recipe, RecipeServes } from "../../../types/recipes.js";
 import type { RenderMeta, StyleHint } from "../renderer/types.js";
 import { MarkdownRenderer } from "./renderer.js";
@@ -32,22 +32,10 @@ export interface RecipeRenderableEntriesMeta {
     entryMakes: string | null;
     entryServes: string | null;
     entryMetasTime: RecipeTimeMeta[] | null;
-    entryIngredients: {
-        type: "entries";
-        entries: Entry[];
-    };
-    entryEquipment: {
-        type: "entries";
-        entries: Entry[];
-    } | null;
-    entryCooksNotes: {
-        type: "entries";
-        entries: Entry[];
-    } | null;
-    entryInstructions: {
-        type: "entries";
-        entries: Entry[];
-    };
+    entryIngredients: EntryEntries;
+    entryEquipment: EntryEntries | null;
+    entryCooksNotes: EntryEntries | null;
+    entryInstructions: EntryEntries;
 }
 export declare const getRecipeRenderableEntriesMeta: (ent: RecipeEntry) => RecipeRenderableEntriesMeta;
 export declare class RecipeMarkdownRenderer {

@@ -2,7 +2,7 @@
 // Migrated from js/render-markdown.js RendererMarkdown.vehicle
 // Provides vehicle-specific markdown rendering for D&D 5e vehicles
 
-import type { Entry } from "../../../types/entry.js";
+import type { Entry, EntryTable } from "../../../types/entry.js";
 import type {
 	Vehicle,
 	VehicleShip,
@@ -10,6 +10,7 @@ import type {
 	VehicleElementalAirship,
 	VehicleInfernalWarMachine,
 	VehicleUpgrade,
+	VehicleType,
 	ShipControl,
 	ShipMovement,
 	ShipWeapon,
@@ -23,6 +24,34 @@ import { ABIL_ABVS } from "../parser/attributes.js";
 import { getMarkdownRenderer, markdownUtils, type MarkdownRenderer } from "./renderer.js";
 
 // ============ Types ============
+
+interface ShipOtherExtended extends ShipOther {
+	isAction?: boolean;
+}
+
+interface AbilityScores {
+	str?: number;
+	dex?: number;
+	con?: number;
+	int?: number;
+	wis?: number;
+	cha?: number;
+}
+
+interface VehicleTableEntry extends Omit<EntryTable, "rows"> {
+	type: "table";
+	colStyles: string[];
+	rows: string[][];
+}
+
+const extractAbilityScores = (ent: AbilityScores): Record<string, number | null | undefined> => ({
+	str: ent.str,
+	dex: ent.dex,
+	con: ent.con,
+	int: ent.int,
+	wis: ent.wis,
+	cha: ent.cha,
+});
 
 export interface VehicleMarkdownOptions {
 	meta?: RenderMeta;
@@ -60,11 +89,11 @@ interface VehicleRenderableEntriesMeta {
 }
 
 interface SpelljammerRenderableEntriesMeta {
-	entryTableSummary: Entry;
+	entryTableSummary: VehicleTableEntry;
 }
 
 interface ElementalAirshipRenderableEntriesMeta {
-	entryTableSummary: Entry;
+	entryTableSummary: VehicleTableEntry;
 }
 
 interface InfwarRenderableEntriesMeta {
@@ -172,7 +201,7 @@ const getVehicleShipRenderableEntriesMeta = (ent: VehicleShip): ShipRenderableEn
 
 	if (ent.other?.length) {
 		for (const other of ent.other) {
-			if ((other as any).isAction) {
+			if ((other as ShipOtherExtended).isAction) {
 				entriesOtherActions.push(other);
 			} else {
 				entriesOtherOthers.push(other);
@@ -247,13 +276,11 @@ const getSpelljammerRenderableEntriesMeta = (ent: VehicleSpelljammer): Spelljamm
 		rows.push(["Cost", `${ent.cost.toLocaleString()} gp`]);
 	}
 
-	// Cast to unknown first to bypass strict type checking for table rows
-	// The runtime renderer handles plain arrays of strings
-	const tableEntry = {
+	const tableEntry: VehicleTableEntry = {
 		type: "table",
 		colStyles: ["col-6", "col-6"],
 		rows,
-	} as unknown as Entry;
+	};
 
 	return { entryTableSummary: tableEntry };
 };
@@ -299,13 +326,11 @@ const getElementalAirshipRenderableEntriesMeta = (ent: VehicleElementalAirship):
 		rows.push(["Cost", `${ent.cost.toLocaleString()} gp`]);
 	}
 
-	// Cast to unknown first to bypass strict type checking for table rows
-	// The runtime renderer handles plain arrays of strings
-	const tableEntry = {
+	const tableEntry: VehicleTableEntry = {
 		type: "table",
 		colStyles: ["col-6", "col-6"],
 		rows,
-	} as unknown as Entry;
+	};
 
 	return { entryTableSummary: tableEntry };
 };
@@ -581,7 +606,7 @@ const getRenderedStringShip = (ent: VehicleShip, opts: VehicleMarkdownOptions): 
 		`## ${ent.name}`,
 		renderer.render(entriesMetaShip.entrySizeDimensions),
 		shipHelpers.getCrewCargoPaceSection_(ent, { entriesMetaShip }),
-		markdownUtils.getRenderedAbilityScores(ent as any),
+		markdownUtils.getRenderedAbilityScores(extractAbilityScores(ent)),
 		entriesMeta.entryDamageVulnerabilities ? renderer.render(entriesMeta.entryDamageVulnerabilities) : null,
 		entriesMeta.entryDamageResistances ? renderer.render(entriesMeta.entryDamageResistances) : null,
 		entriesMeta.entryDamageImmunities ? renderer.render(entriesMeta.entryDamageImmunities) : null,
@@ -668,7 +693,7 @@ const getRenderedStringInfwar = (ent: VehicleInfernalWarMachine, opts: VehicleMa
 		entriesMetaInfwar.entryHitPoints ? renderer.render(entriesMetaInfwar.entryHitPoints) : null,
 		entriesMetaInfwar.entrySpeed ? renderer.render(entriesMetaInfwar.entrySpeed) : null,
 		entriesMetaInfwar.entrySpeedNote ? renderer.render(entriesMetaInfwar.entrySpeedNote) : null,
-		markdownUtils.getRenderedAbilityScores(ent as any),
+		markdownUtils.getRenderedAbilityScores(extractAbilityScores(ent)),
 		entriesMeta.entryDamageVulnerabilities ? renderer.render(entriesMeta.entryDamageVulnerabilities) : null,
 		entriesMeta.entryDamageResistances ? renderer.render(entriesMeta.entryDamageResistances) : null,
 		entriesMeta.entryDamageImmunities ? renderer.render(entriesMeta.entryDamageImmunities) : null,
@@ -793,7 +818,7 @@ export class VehicleMarkdownRenderer {
 		}
 
 		const vehicle = ent as Vehicle;
-		const vehicleType = (vehicle as any).vehicleType || "SHIP";
+		const vehicleType: VehicleType = vehicle.vehicleType ?? "SHIP";
 
 		switch (vehicleType) {
 			case "SHIP":

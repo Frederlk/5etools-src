@@ -36,5 +36,7 @@ export { CharoptionMarkdownRenderer, getCharoptionMarkdownRenderer, charoptionMa
 export { RecipeMarkdownRenderer, getRecipeMarkdownRenderer, recipeMarkdown, getRecipeRenderableEntriesMeta, } from "./recipe.js";
 // ============ Trap/Hazard Markdown ============
 export { TrapMarkdownRenderer, HazardMarkdownRenderer, TrapHazardMarkdownRenderer, getTrapMarkdownRenderer, getHazardMarkdownRenderer, getTrapHazardMarkdownRenderer, trapMarkdown, hazardMarkdown, traphazardMarkdown, } from "./trap.js";
+// ============ Markdown Converter ============
+export { MarkdownConverter, getEntries, getConvertedTable, postProcessTable, ENTRIES_WITH_CHILDREN, ENTRIES_WITH_ENUMERATED_TITLES, } from "./converter.js";
 export { createTextStack, createRenderMeta, defaultMarkdownConfig } from "../renderer/types.js";
 //# sourceMappingURL=index.js.map

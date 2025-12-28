@@ -2,7 +2,8 @@
 // Migrated from js/render-markdown.js RendererMarkdown.monster
 // Provides monster-specific markdown rendering
 
-import type { Monster } from "../../../types/bestiary/bestiary.js";
+import type { Monster, DamageImmunityEntry, ConditionImmuneEntry, DamageResistEntry, DamageVulnerabilityEntry } from "../../../types/bestiary/bestiary.js";
+import type { MonsterExtended, MonsterResource, MonsterSaveWithSpecial, MonsterSkillWithOther } from "../types/monster-extended.js";
 import type { Entry } from "../../../types/entry.js";
 import type { RenderMeta, StyleHint, CompactRenderResult } from "../renderer/types.js";
 import { createRenderMeta } from "../renderer/types.js";
@@ -389,7 +390,8 @@ export abstract class MonsterMarkdownRendererBase {
 	}
 
 	protected _getCommonMdParts_name(mon: Monster): string {
-		return `>## ${(mon as any)._displayName || mon.name}`;
+		const monExt = mon as MonsterExtended;
+		return `>## ${monExt._displayName || mon.name}`;
 	}
 
 	protected _getCommonMdParts_sizeTypeAlignment(mon: Monster): string {
@@ -397,14 +399,14 @@ export abstract class MonsterMarkdownRendererBase {
 		const sizeStr = getSizeString(mon.size);
 		const alignStr = getAlignmentString(mon.alignment);
 
-		const levelPrefix = (mon as any).level
-			? `${this._getOrdinal((mon as any).level)}-level `
+		const levelPrefix = mon.level
+			? `${this._getOrdinal(mon.level)}-level `
 			: "";
 
 		let alignPart = "";
 		if (alignStr) {
-			const alignPrefix = (mon as any).alignmentPrefix
-				? stripTags((mon as any).alignmentPrefix)
+			const alignPrefix = mon.alignmentPrefix
+				? stripTags(mon.alignmentPrefix)
 				: "";
 			alignPart = `, ${alignPrefix}${alignStr}`;
 		}
@@ -427,18 +429,19 @@ export abstract class MonsterMarkdownRendererBase {
 
 	protected _getCommonMdParts_hpResource(mon: Monster): string {
 		const hpPart = getHpString(mon.hp);
+		const monExt = mon as MonsterExtended;
 
 		let resourcePart = "";
-		if ((mon as any).resource?.length) {
-			resourcePart = (mon as any).resource
-				.map((res: any) => `\n>- **${res.name}** ${this._getResourceString(res)}`)
+		if (monExt.resource?.length) {
+			resourcePart = monExt.resource
+				.map((res: MonsterResource) => `\n>- **${res.name}** ${this._getResourceString(res)}`)
 				.join("");
 		}
 
 		return `>- **Hit Points** ${hpPart}${resourcePart}`;
 	}
 
-	protected _getResourceString(res: any): string {
+	protected _getResourceString(res: MonsterResource): string {
 		if (typeof res.value === "number") return String(res.value);
 		if (res.formula) return res.formula;
 		return "";
@@ -448,7 +451,7 @@ export abstract class MonsterMarkdownRendererBase {
 		const speedPart = getSpeedString(mon.speed);
 
 		let initiativePart = "";
-		if (this._style !== "classic" && (mon as any).initiative) {
+		if (this._style !== "classic" && mon.initiative) {
 			initiativePart = `\n>- **Initiative** ${this._getInitiativeString(mon)}`;
 		}
 
@@ -456,7 +459,7 @@ export abstract class MonsterMarkdownRendererBase {
 	}
 
 	protected _getInitiativeString(mon: Monster): string {
-		const init = (mon as any).initiative;
+		const init = mon.initiative;
 		if (init == null) return "";
 		if (typeof init === "number") return init >= 0 ? `+${init}` : String(init);
 		if (init.initiative != null) {
@@ -468,11 +471,25 @@ export abstract class MonsterMarkdownRendererBase {
 	}
 
 	protected _getCommonMdParts_abilityScores(mon: Monster): string {
-		return markdownUtils.getRenderedAbilityScores(mon as any, { prefix: ">" });
+		const getScore = (val: number | null | { special: string } | undefined): number | null | undefined => {
+			if (val == null) return val;
+			if (typeof val === "number") return val;
+			return null;
+		};
+		const abilityScores = {
+			str: getScore(mon.str),
+			dex: getScore(mon.dex),
+			con: getScore(mon.con),
+			int: getScore(mon.int),
+			wis: getScore(mon.wis),
+			cha: getScore(mon.cha),
+		};
+		return markdownUtils.getRenderedAbilityScores(abilityScores, { prefix: ">" });
 	}
 
 	protected _getCommonMdParts_save(mon: Monster): string {
 		if (!mon.save) return "";
+		const saveExt = mon.save as MonsterSaveWithSpecial;
 
 		const saves = Object.keys(mon.save)
 			.filter(k => k !== "special")
@@ -482,8 +499,8 @@ export abstract class MonsterMarkdownRendererBase {
 				return `${attr.charAt(0).toUpperCase() + attr.slice(1)} ${val}`;
 			});
 
-		if ((mon.save as any).special) {
-			saves.push(stripTags((mon.save as any).special));
+		if (saveExt.special) {
+			saves.push(stripTags(saveExt.special));
 		}
 
 		return saves.length ? `\n>- **Saving Throws** ${saves.join(", ")}` : "";
@@ -496,14 +513,15 @@ export abstract class MonsterMarkdownRendererBase {
 
 	protected _getSkillsString(mon: Monster): string {
 		if (!mon.skill) return "";
+		const skillExt = mon.skill as MonsterSkillWithOther;
 
 		const skills = Object.keys(mon.skill)
 			.filter(k => k !== "other" && k !== "special")
 			.sort()
-			.map(s => `${s.charAt(0).toUpperCase() + s.slice(1)} ${(mon.skill as any)[s]}`);
+			.map(s => `${s.charAt(0).toUpperCase() + s.slice(1)} ${skillExt[s]}`);
 
-		if ((mon.skill as any).other) {
-			for (const other of (mon.skill as any).other) {
+		if (skillExt.other) {
+			for (const other of skillExt.other) {
 				if (other.oneOf) {
 					const oneOfStr = Object.keys(other.oneOf)
 						.sort()
@@ -514,23 +532,24 @@ export abstract class MonsterMarkdownRendererBase {
 			}
 		}
 
-		if ((mon.skill as any).special) {
-			skills.push(stripTags((mon.skill as any).special));
+		if (skillExt.special) {
+			skills.push(stripTags(skillExt.special));
 		}
 
 		return skills.join(", ");
 	}
 
 	protected _getCommonMdParts_tool(mon: Monster): string {
-		if (!(mon as any).tool) return "";
+		const monExt = mon as MonsterExtended;
+		if (!monExt.tool) return "";
 		return `\n>- **Tools** ${this._getToolsString(mon)}`;
 	}
 
 	protected _getToolsString(mon: Monster): string {
-		const tool = (mon as any).tool;
-		if (!tool) return "";
+		const monExt = mon as MonsterExtended;
+		if (!monExt.tool) return "";
 
-		return Object.entries(tool)
+		return Object.entries(monExt.tool)
 			.map(([uid, bonus]) => {
 				const name = uid.split("|")[0];
 				return `${name.charAt(0).toUpperCase() + name.slice(1)} ${bonus}`;
@@ -540,7 +559,7 @@ export abstract class MonsterMarkdownRendererBase {
 
 	protected _getCommonMdParts_damVuln(mon: Monster): string {
 		if (!mon.vulnerable) return "";
-		const vulnStr = getImmResString(mon.vulnerable as any[], {
+		const vulnStr = getImmResString(mon.vulnerable as DamageVulnerabilityEntry[], {
 			isPlainText: true,
 			isTitleCase: this._style !== "classic",
 		});
@@ -549,7 +568,7 @@ export abstract class MonsterMarkdownRendererBase {
 
 	protected _getCommonMdParts_damRes(mon: Monster): string {
 		if (!mon.resist) return "";
-		const resStr = getImmResString(mon.resist as any[], {
+		const resStr = getImmResString(mon.resist as DamageResistEntry[], {
 			isPlainText: true,
 			isTitleCase: this._style !== "classic",
 		});
@@ -618,10 +637,10 @@ export abstract class MonsterMarkdownRendererBase {
 			}));
 		}
 
-		if ((mon as any).bonus?.length) {
+		if (mon.bonus?.length) {
 			parts.push(this._getRenderedSectionWithHeader({
 				mon,
-				arr: (mon as any).bonus,
+				arr: mon.bonus,
 				prop: "bonus",
 				title: "Bonus Actions",
 				meta,
@@ -647,10 +666,10 @@ export abstract class MonsterMarkdownRendererBase {
 			parts.push(`${header}>${intro}\n>\n${content}`);
 		}
 
-		if ((mon as any).mythic?.length) {
+		if (mon.mythic?.length) {
 			const header = this._getRenderedSectionHeader({ mon, title: "Mythic Actions", prop: "mythic", prefix: ">" });
 			const intro = this._getMythicIntro(mon);
-			const content = this._getRenderedLegendarySection((mon as any).mythic, 1, meta);
+			const content = this._getRenderedLegendarySection(mon.mythic, 1, meta);
 			parts.push(`${header}>${intro}\n>\n${content}`);
 		}
 
@@ -687,8 +706,8 @@ export abstract class MonsterMarkdownRendererBase {
 		prefix?: string;
 	}): string {
 		const { mon, title, prop, prefix = "" } = params;
-		const propNote = `${prop}Note`;
-		const note = (mon as any)[propNote];
+		const propNote = `${prop}Note` as keyof Monster;
+		const note = mon[propNote] as string | undefined;
 		const ptTitle = `\n${prefix}### ${title}`;
 
 		if (!note) return `${ptTitle}\n`;
@@ -737,14 +756,16 @@ export abstract class MonsterMarkdownRendererBase {
 	}
 
 	protected _getLegendaryIntro(mon: Monster): string {
-		const name = (mon as any)._displayName || mon.name;
-		const actionCount = (mon as any).legendaryActions || 3;
+		const monExt = mon as MonsterExtended;
+		const name = monExt._displayName || mon.name;
+		const actionCount = mon.legendaryActions || 3;
 
 		return `The ${name.toLowerCase()} can take ${actionCount} legendary action${actionCount === 1 ? "" : "s"}, choosing from the options below. Only one legendary action can be used at a time and only at the end of another creature's turn. The ${name.toLowerCase()} regains spent legendary actions at the start of its turn.`;
 	}
 
 	protected _getMythicIntro(mon: Monster): string {
-		const name = (mon as any)._displayName || mon.name;
+		const monExt = mon as MonsterExtended;
+		const name = monExt._displayName || mon.name;
 		return `If ${name}'s mythic trait is active, it can use the options below as legendary actions.`;
 	}
 }
@@ -788,13 +809,13 @@ ${common.mdPtPb}
 
 	private _getMdParts_damageImmunities(mon: Monster): string {
 		if (!mon.immune) return "";
-		const immStr = getImmResString(mon.immune as any[], { isPlainText: true });
+		const immStr = getImmResString(mon.immune as DamageImmunityEntry[], { isPlainText: true });
 		return `\n>- **Damage Immunities** ${immStr}`;
 	}
 
 	private _getMdParts_conditionImmunities(mon: Monster): string {
 		if (!mon.conditionImmune) return "";
-		const condStr = getCondImmString(mon.conditionImmune as any[], { isPlainText: true });
+		const condStr = getCondImmString(mon.conditionImmune as ConditionImmuneEntry[], { isPlainText: true });
 		return `\n>- **Condition Immunities** ${condStr}`;
 	}
 }
@@ -840,7 +861,7 @@ ${common.mdPtPb}
 		const parts: string[] = [];
 
 		if (mon.immune) {
-			const immStr = getImmResString(mon.immune as any[], {
+			const immStr = getImmResString(mon.immune as DamageImmunityEntry[], {
 				isPlainText: true,
 				isTitleCase: true,
 			});
@@ -848,7 +869,7 @@ ${common.mdPtPb}
 		}
 
 		if (mon.conditionImmune) {
-			const condStr = getCondImmString(mon.conditionImmune as any[], {
+			const condStr = getCondImmString(mon.conditionImmune as ConditionImmuneEntry[], {
 				isPlainText: true,
 				isTitleCase: true,
 			});
@@ -860,10 +881,10 @@ ${common.mdPtPb}
 	}
 
 	private _getMdParts_gear(mon: Monster, renderer: MarkdownRenderer): string {
-		const gear = (mon as any).gear;
-		if (!gear?.length) return "";
+		const monExt = mon as MonsterExtended;
+		if (!monExt.gear?.length) return "";
 
-		const gearStr = gear.map((g: any) => stripTags(g)).join(", ");
+		const gearStr = monExt.gear.map((g: string) => stripTags(g)).join(", ");
 		return `\n>- **Gear** ${gearStr}`;
 	}
 }

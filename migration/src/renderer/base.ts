@@ -4,7 +4,9 @@
 
 import type {
 	Entry,
+	EntryObject,
 	EntryEntries,
+	EntrySection,
 	EntryList,
 	EntryTable,
 	EntryQuote,
@@ -14,6 +16,10 @@ import type {
 	EntryItem,
 	EntryImage,
 	EntryTableCell,
+	EntryWrapped,
+	DiceExpression,
+	EntryDice,
+	SpellLevel,
 } from "../../../types/entry.js";
 
 import type {
@@ -46,14 +52,44 @@ export const defaultRendererConfig: RendererConfig = {
 
 // ============ Entry Type Checking ============
 
-export const isEntryObject = (entry: Entry): entry is Exclude<Entry, string> => {
+export const isEntryObject = (entry: Entry): entry is EntryObject => {
 	return typeof entry === "object" && entry !== null;
 };
+
+export const isEntryWrapped = (entry: EntryObject): entry is EntryWrapped => {
+	return entry.type === "wrapper";
+};
+
+export const isEntrySection = (entry: EntryObject): entry is EntrySection => {
+	return entry.type === "section";
+};
+
+export const hasEntries = (entry: EntryObject): entry is EntryObject & { entries: Entry[] } => {
+	return "entries" in entry && Array.isArray((entry as { entries?: unknown }).entries);
+};
+
+export const hasEntry = (entry: EntryObject): entry is EntryObject & { entry: Entry } => {
+	return "entry" in entry && (entry as { entry?: unknown }).entry !== undefined;
+};
+
+export const hasTitle = (entry: EntryObject): entry is EntryObject & { title: string } => {
+	return "title" in entry && typeof (entry as { title?: unknown }).title === "string";
+};
+
+export const isEntryTableCell = (cell: unknown): cell is EntryTableCell => {
+	if (typeof cell !== "object" || cell === null) return false;
+	const obj = cell as { type?: unknown; roll?: unknown };
+	// Check for explicit type: "cell" OR presence of roll property (table cell characteristic)
+	return obj.type === "cell" || obj.roll !== undefined;
+};
+
+type EntryWithEntries = EntryObject & { entries?: Entry[] };
 
 export const getEntryType = (entry: Entry): string => {
 	if (typeof entry === "string") return "string";
 	if (entry == null) return "null";
-	return (entry as any).type ?? "entries";
+	if (!("type" in entry)) return "entries";
+	return entry.type ?? "entries";
 };
 
 // ============ Base Renderer Class ============
@@ -151,12 +187,15 @@ export abstract class BaseRenderer {
 		if (entry == null) return;
 
 		// Handle wrapped entries
-		if (isEntryObject(entry) && (entry as any).type === "wrapper") {
-			return this._recursiveRender((entry as any).wrapped, textStack, meta, options);
+		if (isEntryObject(entry) && isEntryWrapped(entry)) {
+			if (entry.wrapped) {
+				return this._recursiveRender(entry.wrapped, textStack, meta, options);
+			}
+			return;
 		}
 
 		// Handle section type (adjusts depth)
-		if (isEntryObject(entry) && (entry as any).type === "section") {
+		if (isEntryObject(entry) && isEntrySection(entry)) {
 			meta.depth = -1;
 		}
 
@@ -334,7 +373,7 @@ export abstract class BaseRenderer {
 
 			default:
 				// Unknown type - try to render as entries
-				if ((entry as any).entries) {
+				if (hasEntries(entry)) {
 					this._renderEntries(entry as EntryEntries, textStack, meta, options);
 				}
 				break;
@@ -379,9 +418,9 @@ export abstract class BaseRenderer {
 		options: RenderOptions
 	): void;
 
-	/** Render an entries block */
+	/** Render an entries block (accepts any entry type with entries property) */
 	protected abstract _renderEntries(
-		entry: EntryEntries,
+		entry: EntryWithEntries,
 		textStack: TextStack,
 		meta: RenderMeta,
 		options: RenderOptions
@@ -411,9 +450,9 @@ export abstract class BaseRenderer {
 		options: RenderOptions
 	): void;
 
-	/** Render an inset */
+	/** Render an inset (accepts both inset and insetReadaloud types) */
 	protected abstract _renderInset(
-		entry: EntryInset,
+		entry: EntryInset | EntryInsetReadaloud,
 		textStack: TextStack,
 		meta: RenderMeta,
 		options: RenderOptions
@@ -471,7 +510,7 @@ export abstract class BaseRenderer {
 		options: RenderOptions
 	): void {
 		// Default: same as inset (both have name and entries properties)
-		this._renderInset(entry as unknown as EntryInset, textStack, meta, options);
+		this._renderInset(entry, textStack, meta, options);
 	}
 
 	protected _renderVariant(
@@ -480,9 +519,9 @@ export abstract class BaseRenderer {
 		meta: RenderMeta,
 		options: RenderOptions
 	): void {
-		// Default: render as entries
-		if ((entry as any).entries) {
-			this._renderEntries(entry as any, textStack, meta, options);
+		// Default: render as entries - EntryVariant has entries property
+		if (entry.entries) {
+			this._renderEntries(entry, textStack, meta, options);
 		}
 	}
 
@@ -606,15 +645,15 @@ export abstract class BaseRenderer {
 		textStack[0] += diceStr;
 	}
 
-	protected _getDiceString(entry: any): string {
+	protected _getDiceString(entry: EntryDice): string {
 		if (entry.toRoll) {
 			if (typeof entry.toRoll === "string") return entry.toRoll;
 			// Legacy array format
-			return (entry.toRoll as any[])
-				.map((r: any) => {
-					const mod = r.modifier || r.mod || 0;
+			return entry.toRoll
+				.map((r: DiceExpression) => {
+					const mod = r.modifier ?? 0;
 					const modStr = mod > 0 ? `+${mod}` : mod < 0 ? String(mod) : "";
-					return `${r.number || 1}d${r.faces}${modStr}`;
+					return `${r.number ?? 1}d${r.faces}${modStr}`;
 				})
 				.join("+");
 		}
@@ -733,9 +772,9 @@ export abstract class BaseRenderer {
 		}
 		// Handle spell lists, daily/weekly/will spells, etc.
 		if (entry.spells) {
-			for (const [level, spellData] of Object.entries(entry.spells)) {
-				if ((spellData as any).spells) {
-					for (const spell of (spellData as any).spells) {
+			for (const [level, spellData] of Object.entries(entry.spells) as [string, SpellLevel][]) {
+				if (spellData.spells) {
+					for (const spell of spellData.spells) {
 						this._recursiveRender(spell, textStack, meta, options);
 					}
 				}
@@ -829,7 +868,7 @@ export class PlainTextRenderer extends BaseRenderer {
 	}
 
 	protected _renderEntries(
-		entry: EntryEntries,
+		entry: EntryWithEntries,
 		textStack: TextStack,
 		meta: RenderMeta,
 		options: RenderOptions
@@ -895,14 +934,15 @@ export class PlainTextRenderer extends BaseRenderer {
 		if (entry.rows) {
 			for (const row of entry.rows) {
 				if (Array.isArray(row)) {
-					textStack[0] += row
+					// Table rows can contain Entry or EntryTableCell (type def is incomplete)
+					const cells = row as (Entry | EntryTableCell)[];
+					textStack[0] += cells
 						.map(cell => {
 							if (typeof cell === "string") return stripTags(cell);
-							if (typeof cell === "object" && cell !== null) {
-								const cellObj = cell as any;
-								if (cellObj.entry) return this.render(cellObj.entry);
-								if (cellObj.roll?.exact != null) return String(cellObj.roll.exact);
-								if (cellObj.roll?.min != null) return `${cellObj.roll.min}-${cellObj.roll.max}`;
+							if (isEntryTableCell(cell)) {
+								if (cell.entry) return this.render(cell.entry);
+								if (cell.roll?.exact != null) return String(cell.roll.exact);
+								if (cell.roll?.min != null) return `${cell.roll.min}-${cell.roll.max}`;
 							}
 							return String(cell);
 						})
@@ -943,7 +983,7 @@ export class PlainTextRenderer extends BaseRenderer {
 	}
 
 	protected _renderInset(
-		entry: EntryInset,
+		entry: EntryInset | EntryInsetReadaloud,
 		textStack: TextStack,
 		meta: RenderMeta,
 		options: RenderOptions
@@ -955,8 +995,8 @@ export class PlainTextRenderer extends BaseRenderer {
 			textStack[0] += `[${name}]\n`;
 		}
 
-		if ((entry as any).entries) {
-			for (const e of (entry as any).entries) {
+		if (entry.entries) {
+			for (const e of entry.entries) {
 				this._recursiveRender(e, textStack, meta, options);
 				textStack[0] += "\n";
 			}
@@ -978,11 +1018,11 @@ export class PlainTextRenderer extends BaseRenderer {
 			textStack[0] += `${name}. `;
 		}
 
-		if ((entry as any).entry) {
-			this._recursiveRender((entry as any).entry, textStack, meta, options);
+		if (entry.entry) {
+			this._recursiveRender(entry.entry, textStack, meta, options);
 		}
-		if ((entry as any).entries) {
-			for (const e of (entry as any).entries) {
+		if (entry.entries) {
+			for (const e of entry.entries) {
 				this._recursiveRender(e, textStack, meta, options);
 			}
 		}
@@ -998,8 +1038,8 @@ export class PlainTextRenderer extends BaseRenderer {
 	): void {
 		this._renderPrefix(entry, textStack, meta, options);
 
-		if ((entry as any).title) {
-			textStack[0] += `[Image: ${(entry as any).title}]\n`;
+		if (entry.title) {
+			textStack[0] += `[Image: ${entry.title}]\n`;
 		} else {
 			textStack[0] += "[Image]\n";
 		}

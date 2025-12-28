@@ -75,7 +75,7 @@ const getModeEntry = (mode: PsionicMode): Entry => {
 				entries: submode.entries,
 			} as Entry;
 		});
-		(modeEntry as any).entries.push(...submodeEntries);
+		modeEntry?.entries?.push(...submodeEntries);
 	}
 
 	return modeEntry;

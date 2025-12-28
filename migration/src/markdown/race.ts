@@ -43,23 +43,19 @@ const getHeightAndWeightEntries = (race: RaceEntry): Entry[] => {
 	const cellHeightMod = `+${hw.heightMod}`;
 	const cellWeightMod = `× ${hw.weightMod || "1"} lb.`;
 
-	const row: string[] = [
+	const row: Entry[] = [
 		getRenderedHeight(hw.baseHeight),
 		`${hw.baseWeight} lb.`,
 		cellHeightMod,
 		cellWeightMod,
 	];
 
-	// NOTE: The renderer handles both raw string arrays and {type: "row", row: [...]} format.
-	// We use the raw array format for simplicity, matching the original JS implementation.
-	// The type assertion is needed because EntryTable.rows expects EntryTableRow[],
-	// but the renderer's _renderTable method handles both formats via runtime checks.
 	const tableEntry: EntryTable = {
 		type: "table",
 		caption: "Random Height and Weight",
 		colLabels,
 		colStyles,
-		rows: [row] as unknown as EntryTableRow[],
+		rows: [row],
 	};
 
 	return [

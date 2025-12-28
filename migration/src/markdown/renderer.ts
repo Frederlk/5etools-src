@@ -4,15 +4,28 @@
 
 import type {
 	Entry,
+	EntryObject,
 	EntryEntries,
 	EntryList,
 	EntryTable,
+	EntryTableRow,
+	EntryTableCell,
 	EntryQuote,
 	EntryInset,
 	EntryInsetReadaloud,
 	EntryVariant,
+	EntryVariantSub,
 	EntryItem,
+	EntryItemSub,
+	EntryItemSpell,
 	EntryImage,
+	EntryGallery,
+	EntryLink,
+	EntryOptFeature,
+	EntrySpellcasting,
+	EntryFlowBlock,
+	MediaHref,
+	SpellLevel,
 } from "../../../types/entry.js";
 
 import type {
@@ -28,6 +41,49 @@ import { BaseRenderer, type RendererConfig } from "../renderer/base.js";
 import { splitByTags, splitFirstSpace, splitTagByPipe, stripTags } from "../renderer/tags.js";
 import { getHeaderRowMetas, getHeaderRowSpanWidth } from "../renderer/table.js";
 import { attrChooseToFull, attAbvToFull, ABIL_ABVS } from "../parser/attributes.js";
+
+// ============ Type Guards ============
+
+type EntryWithEntries = EntryObject & { entries?: Entry[] };
+
+type EntryWithPrerequisite = EntryWithEntries & { prerequisite?: Entry };
+
+interface ListDataWithSpellList extends Record<string, unknown> {
+	isSpellList?: boolean;
+}
+
+interface EntryListWithData extends Omit<EntryList, "data"> {
+	data?: ListDataWithSpellList;
+}
+
+interface ListItemWithRendered {
+	type?: string;
+	rendered?: string;
+}
+
+function isEntryTableRow(row: unknown): row is EntryTableRow {
+	return typeof row === "object" && row !== null && (row as EntryTableRow).type === "row";
+}
+
+function isEntryTableCell(cell: unknown): cell is EntryTableCell {
+	return typeof cell === "object" && cell !== null && (cell as EntryTableCell).type === "cell";
+}
+
+function isListItemWithRendered(item: unknown): item is ListItemWithRendered {
+	return typeof item === "object" && item !== null && "rendered" in item;
+}
+
+function isEntryList(item: unknown): item is EntryList {
+	return typeof item === "object" && item !== null && (item as EntryList).type === "list";
+}
+
+function hasEntries(entry: unknown): entry is EntryWithEntries {
+	return typeof entry === "object" && entry !== null && "entries" in entry;
+}
+
+function hasPrerequisite(entry: unknown): entry is EntryWithPrerequisite {
+	return typeof entry === "object" && entry !== null && "prerequisite" in entry;
+}
 
 // ============ Constants ============
 
@@ -339,7 +395,7 @@ export class MarkdownRenderer extends BaseRenderer {
 	// ============ Entries Rendering ============
 
 	protected _renderEntries(
-		entry: EntryEntries,
+		entry: EntryWithEntries,
 		textStack: TextStack,
 		meta: RenderMeta,
 		options: RenderOptions
@@ -348,7 +404,7 @@ export class MarkdownRenderer extends BaseRenderer {
 	}
 
 	protected _renderEntriesSubtypes(
-		entry: EntryEntries,
+		entry: EntryWithEntries,
 		textStack: TextStack,
 		meta: RenderMeta,
 		options: RenderOptions,
@@ -395,14 +451,14 @@ export class MarkdownRenderer extends BaseRenderer {
 	}
 
 	private _renderEntriesSubtypes_renderPreReqText(
-		entry: EntryEntries & { prerequisite?: Entry },
+		entry: EntryWithEntries,
 		textStack: TextStack,
 		meta: RenderMeta
 	): void {
-		if ((entry as any).prerequisite) {
+		if (hasPrerequisite(entry) && entry.prerequisite) {
 			textStack[0] += "*Prerequisite: ";
 			this._recursiveRender(
-				{ type: "inline", entries: [(entry as any).prerequisite] } as any,
+				{ type: "inline", entries: [entry.prerequisite] },
 				textStack,
 				meta,
 				{}
@@ -435,7 +491,8 @@ export class MarkdownRenderer extends BaseRenderer {
 		const indentSpaces = "  ".repeat(listDepth);
 		const len = entry.items.length;
 
-		const isSpellList = (entry as any).data?.isSpellList;
+		const entryWithData = entry as EntryListWithData;
+		const isSpellList = entryWithData.data?.isSpellList;
 
 		if (isSpellList) {
 			textStack[0] += `${getNextPrefix(options)}\n`;
@@ -448,14 +505,14 @@ export class MarkdownRenderer extends BaseRenderer {
 		} else {
 			for (let i = 0; i < len; ++i) {
 				const item = entry.items[i];
-				const isNestedList = typeof item === "object" && (item as any).type === "list";
+				const isNestedList = isEntryList(item);
 
 				textStack[0] += `${getNextPrefix(options)}${indentSpaces}${isNestedList ? "" : "- "}`;
 
 				const cacheDepth = this._adjustDepth(meta, 1);
 
-				if (typeof item === "object" && (item as any).rendered) {
-					textStack[0] += (item as any).rendered;
+				if (isListItemWithRendered(item) && item.rendered) {
+					textStack[0] += item.rendered;
 				} else {
 					this._recursiveRender(item, textStack, meta, { suffix: "\n" });
 				}
@@ -479,8 +536,8 @@ export class MarkdownRenderer extends BaseRenderer {
 		meta: RenderMeta,
 		options: RenderOptions
 	): void {
-		if ((entry as any).intro) {
-			for (const ent of (entry as any).intro) {
+		if (entry.intro) {
+			for (const ent of entry.intro) {
 				this._recursiveRender(ent, textStack, meta, options);
 			}
 		}
@@ -555,7 +612,7 @@ export class MarkdownRenderer extends BaseRenderer {
 
 		for (let ixRow = 0; ixRow < numRows; ++ixRow) {
 			const row = entry.rows![ixRow];
-			const rowRender = (row as any).type === "row" ? (row as any).row : row;
+			const rowRender = isEntryTableRow(row) ? row.row : row;
 
 			if (!Array.isArray(rowRender)) continue;
 
@@ -564,31 +621,30 @@ export class MarkdownRenderer extends BaseRenderer {
 				const cell = rowRender[ixCell];
 				let toRenderCell: Entry;
 
-				if (typeof cell === "object" && cell !== null && (cell as any).type === "cell") {
-					const cellObj = cell as any;
-					if (cellObj.roll) {
-						if (cellObj.roll.entry) {
-							toRenderCell = cellObj.roll.entry;
-						} else if (cellObj.roll.exact != null) {
-							toRenderCell = cellObj.roll.pad
-								? String(cellObj.roll.exact).padStart(2, "0")
-								: String(cellObj.roll.exact);
-						} else {
-							const min = cellObj.roll.pad
-								? String(cellObj.roll.min).padStart(2, "0")
-								: String(cellObj.roll.min);
-							const max = cellObj.roll.pad
-								? String(cellObj.roll.max).padStart(2, "0")
-								: String(cellObj.roll.max);
+				if (isEntryTableCell(cell)) {
+					if (cell.roll) {
+						if (cell.roll.exact != null) {
+							toRenderCell = cell.roll.pad
+								? String(cell.roll.exact).padStart(2, "0")
+								: String(cell.roll.exact);
+						} else if (cell.roll.min != null && cell.roll.max != null) {
+							const min = cell.roll.pad
+								? String(cell.roll.min).padStart(2, "0")
+								: String(cell.roll.min);
+							const max = cell.roll.pad
+								? String(cell.roll.max).padStart(2, "0")
+								: String(cell.roll.max);
 							toRenderCell = `${min}-${max}`;
+						} else {
+							toRenderCell = "";
 						}
-					} else if (cellObj.entry) {
-						toRenderCell = cellObj.entry;
+					} else if (cell.entry) {
+						toRenderCell = cell.entry;
 					} else {
 						toRenderCell = "";
 					}
 				} else {
-					toRenderCell = cell;
+					toRenderCell = cell as Entry;
 				}
 
 				const textStackCell = createTextStack();
@@ -641,16 +697,16 @@ export class MarkdownRenderer extends BaseRenderer {
 			textStack[0] += "\n";
 		}
 
-		if ((entry as any).footnotes) {
-			for (const ent of (entry as any).footnotes) {
+		if (entry.footnotes) {
+			for (const ent of entry.footnotes) {
 				const cacheDepth = this._adjustDepth(meta, 1);
 				this._recursiveRender(ent, textStack, meta, options);
 				meta.depth = cacheDepth;
 			}
 		}
 
-		if ((entry as any).outro) {
-			for (const ent of (entry as any).outro) {
+		if (entry.outro) {
+			for (const ent of entry.outro) {
 				this._recursiveRender(ent, textStack, meta, options);
 			}
 		}
@@ -740,7 +796,7 @@ export class MarkdownRenderer extends BaseRenderer {
 	// ============ Inset Rendering ============
 
 	protected _renderInset(
-		entry: EntryInset,
+		entry: EntryInset | EntryInsetReadaloud,
 		textStack: TextStack,
 		meta: RenderMeta,
 		options: RenderOptions
@@ -751,13 +807,12 @@ export class MarkdownRenderer extends BaseRenderer {
 			textStack[0] += `> ##### ${stripTags(name)}\n>\n`;
 		}
 
-		const entries = (entry as any).entries;
-		if (entries) {
-			const len = entries.length;
+		if (entry.entries) {
+			const len = entry.entries.length;
 			for (let i = 0; i < len; ++i) {
 				const cacheDepth = meta.depth;
 				meta.depth = 2;
-				this._recursiveRender(entries[i], textStack, meta, { prefix: ">", suffix: "\n>\n" });
+				this._recursiveRender(entry.entries[i], textStack, meta, { prefix: ">", suffix: "\n>\n" });
 				meta.depth = cacheDepth;
 			}
 		}
@@ -776,13 +831,12 @@ export class MarkdownRenderer extends BaseRenderer {
 			textStack[0] += `>> ##### ${stripTags(name)}\n>>\n`;
 		}
 
-		const entries = (entry as any).entries;
-		if (entries) {
-			const len = entries.length;
+		if (entry.entries) {
+			const len = entry.entries.length;
 			for (let i = 0; i < len; ++i) {
 				const cacheDepth = meta.depth;
 				meta.depth = 2;
-				this._recursiveRender(entries[i], textStack, meta, { prefix: ">>", suffix: "\n>>\n" });
+				this._recursiveRender(entry.entries[i], textStack, meta, { prefix: ">>", suffix: "\n>>\n" });
 				meta.depth = cacheDepth;
 			}
 		}
@@ -801,27 +855,25 @@ export class MarkdownRenderer extends BaseRenderer {
 			textStack[0] += `> ##### Variant: ${stripTags(name)}\n>\n`;
 		}
 
-		const entries = (entry as any).entries;
-		if (entries) {
-			const len = entries.length;
+		if (entry.entries) {
+			const len = entry.entries.length;
 			for (let i = 0; i < len; ++i) {
 				const cacheDepth = meta.depth;
 				meta.depth = 2;
-				this._recursiveRender(entries[i], textStack, meta, { prefix: ">", suffix: "\n>\n" });
+				this._recursiveRender(entry.entries[i], textStack, meta, { prefix: ">", suffix: "\n>\n" });
 				meta.depth = cacheDepth;
 			}
 		}
 
-		const source = (entry as any).source;
-		const page = (entry as any).page;
-		if (source) {
-			textStack[0] += `>${this._getPageText({ source, page })}\n`;
+		if (entry.source) {
+			const page = typeof entry.page === "number" ? entry.page : undefined;
+			textStack[0] += `>${this._getPageText({ source: entry.source, page })}\n`;
 		}
 		textStack[0] += "\n";
 	}
 
 	protected override _renderVariantSub(
-		entry: any,
+		entry: EntryVariantSub,
 		textStack: TextStack,
 		meta: RenderMeta,
 		options: RenderOptions
@@ -862,14 +914,13 @@ export class MarkdownRenderer extends BaseRenderer {
 
 		let addedNewline = false;
 
-		if ((entry as any).entry) {
-			this._recursiveRender((entry as any).entry, textStack, meta, options);
-		} else if ((entry as any).entries) {
-			const entries = (entry as any).entries;
-			const len = entries.length;
+		if (entry.entry) {
+			this._recursiveRender(entry.entry, textStack, meta, options);
+		} else if (entry.entries) {
+			const len = entry.entries.length;
 			for (let i = 0; i < len; ++i) {
 				const nxtPrefix = getNextPrefix(options, i > 0 ? "  " : "");
-				this._recursiveRender(entries[i], textStack, meta, { prefix: nxtPrefix, suffix: "\n" });
+				this._recursiveRender(entry.entries[i], textStack, meta, { prefix: nxtPrefix, suffix: "\n" });
 			}
 			addedNewline = true;
 		}
@@ -886,7 +937,7 @@ export class MarkdownRenderer extends BaseRenderer {
 	}
 
 	protected override _renderItemSub(
-		entry: any,
+		entry: EntryItemSub,
 		textStack: TextStack,
 		meta: RenderMeta,
 		options: RenderOptions
@@ -895,24 +946,28 @@ export class MarkdownRenderer extends BaseRenderer {
 		const name = this._getEntryName(entry);
 		const renderedName = name ? this.render(name) : "";
 		const nxtPrefix = getNextPrefix(options, `*${renderedName}* `);
-		this._recursiveRender(entry.entry, textStack, meta, { prefix: nxtPrefix, suffix: "\n" });
+		if (entry.entry) {
+			this._recursiveRender(entry.entry, textStack, meta, { prefix: nxtPrefix, suffix: "\n" });
+		}
 		this._renderSuffix(entry, textStack, meta, options);
 	}
 
 	protected override _renderItemSpell(
-		entry: any,
+		entry: EntryItemSpell,
 		textStack: TextStack,
 		meta: RenderMeta,
 		options: RenderOptions
 	): void {
 		this._renderPrefix(entry, textStack, meta, options);
 		const name = this._getEntryName(entry);
-		this._recursiveRender(
-			entry.entry,
-			textStack,
-			meta,
-			{ prefix: getNextPrefix(options, `${name} `), suffix: "  \n" }
-		);
+		if (entry.entry) {
+			this._recursiveRender(
+				entry.entry,
+				textStack,
+				meta,
+				{ prefix: getNextPrefix(options, `${name} `), suffix: "  \n" }
+			);
+		}
 		this._renderSuffix(entry, textStack, meta, options);
 	}
 
@@ -926,15 +981,14 @@ export class MarkdownRenderer extends BaseRenderer {
 	): void {
 		this._renderPrefix(entry, textStack, meta, options);
 		const href = this._getImageUrl(entry);
-		const title = (entry as any).title || "";
+		const title = entry.title || "";
 		textStack[0] += `![${title}](${href})`;
 		this._renderSuffix(entry, textStack, meta, options);
 	}
 
 	private _getImageUrl(entry: EntryImage): string {
-		const href = (entry as any).href;
+		const href = entry.href;
 		if (!href) return "";
-		if (typeof href === "string") return href;
 		if (href.type === "internal") {
 			return `${this.config.baseUrl}img/${href.path}`;
 		}
@@ -945,7 +999,7 @@ export class MarkdownRenderer extends BaseRenderer {
 	}
 
 	protected override _renderGallery(
-		entry: any,
+		entry: EntryGallery,
 		textStack: TextStack,
 		meta: RenderMeta,
 		options: RenderOptions
@@ -955,9 +1009,10 @@ export class MarkdownRenderer extends BaseRenderer {
 			textStack[0] += `##### ${name}\n`;
 		}
 
-		const images = entry.images || [];
-		for (const img of images) {
-			this._recursiveRender(img, textStack, meta, options);
+		if (entry.images) {
+			for (const img of entry.images) {
+				this._recursiveRender(img, textStack, meta, options);
+			}
 		}
 	}
 
@@ -1100,24 +1155,30 @@ export class MarkdownRenderer extends BaseRenderer {
 	}
 
 	protected override _renderSpellcasting(
-		entry: any,
+		entry: EntrySpellcasting,
 		textStack: TextStack,
 		meta: RenderMeta,
 		options: RenderOptions
 	): void {
 		const toRender = this._getSpellcastingEntries(entry);
-		if (!toRender?.[0]?.entries?.length) return;
+		if (!toRender.length) return;
+
+		const firstItem = toRender[0];
+		const hasContent = firstItem.type === "entries"
+			? (firstItem.entries?.length ?? 0) > 0
+			: (firstItem.items?.length ?? 0) > 0;
+		if (!hasContent) return;
 
 		this._recursiveRender(
-			{ type: "entries", entries: toRender } as EntryEntries,
+			{ type: "entries", entries: toRender as Entry[] },
 			textStack,
 			meta,
 			{ prefix: getNextPrefix(options), suffix: "\n" }
 		);
 	}
 
-	private _getSpellcastingEntries(entry: any): any[] {
-		const out: any[] = [];
+	private _getSpellcastingEntries(entry: EntrySpellcasting): (EntryEntries | EntryListWithData)[] {
+		const out: (EntryEntries | EntryListWithData)[] = [];
 
 		if (entry.headerEntries) {
 			out.push({ type: "entries", entries: entry.headerEntries });
@@ -1144,13 +1205,12 @@ export class MarkdownRenderer extends BaseRenderer {
 		}
 
 		if (entry.spells) {
-			for (const [level, spellData] of Object.entries(entry.spells)) {
-				const data = spellData as any;
-				if (data.spells?.length) {
+			for (const [level, spellData] of Object.entries(entry.spells) as [string, SpellLevel][]) {
+				if (spellData.spells?.length) {
 					out.push({
 						type: "list",
 						data: { isSpellList: true },
-						items: data.spells,
+						items: spellData.spells,
 					});
 				}
 			}
@@ -1160,7 +1220,7 @@ export class MarkdownRenderer extends BaseRenderer {
 	}
 
 	protected override _renderFlowBlock(
-		entry: any,
+		entry: EntryFlowBlock,
 		textStack: TextStack,
 		meta: RenderMeta,
 		options: RenderOptions
@@ -1303,7 +1363,7 @@ export const markdownUtils = {
 		return str.replace(/\n\n+/g, "\n\n");
 	},
 
-	getRenderedAbilityScores(ent: Record<string, number | null>, opts: { prefix?: string } = {}): string {
+	getRenderedAbilityScores(ent: Record<string, number | null | undefined>, opts: { prefix?: string } = {}): string {
 		const { prefix = "" } = opts;
 		const header = `${prefix}|${ABIL_ABVS.map(it => `${it.toUpperCase()}|`).join("")}`;
 		const separator = `${prefix}|:---:|:---:|:---:|:---:|:---:|:---:|`;

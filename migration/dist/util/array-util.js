@@ -144,10 +144,7 @@ export const findMapped = (arr, fnMapFind) => {
     }
     return undefined;
 };
-/**
- * Remove duplicates from array
- */
-export const unique = (arr, fnGetProp) => {
+export function unique(arr, fnGetProp) {
     const seen = new Set();
     return arr.filter((item, index, array) => {
         const val = fnGetProp ? fnGetProp(item, index, array) : item;
@@ -156,7 +153,7 @@ export const unique = (arr, fnGetProp) => {
         seen.add(val);
         return true;
     });
-};
+}
 /**
  * Zip two arrays together
  */

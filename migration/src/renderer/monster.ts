@@ -205,7 +205,7 @@ export interface TraitEntry {
 	type?: string;
 }
 
-export type RenderFn = (entry: string | Entry | Entry[]) => string;
+export type RenderFn = (entry: string | Entry | Entry[] | SpellcastingEntry) => string;
 
 // ============ Constants ============
 
@@ -410,8 +410,8 @@ export const getSpellcastingRenderedTraits = (
 				return { type: "item", name: entry.name, entries: entry.headerEntries };
 			}
 
-			const entryWithType = { ...entry, type: entry.type ?? "spellcasting" };
-			const rendered = renderer(entryWithType as unknown as Entry);
+			const entryWithType: SpellcastingEntry = { ...entry, type: entry.type ?? "spellcasting" };
+			const rendered = renderer(entryWithType);
 			if (!rendered.length) return null;
 
 			return { name: entry.name, rendered };

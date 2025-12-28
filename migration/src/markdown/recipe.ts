@@ -2,7 +2,7 @@
 // Migrated from js/render-markdown.js RendererMarkdown.recipe
 // Provides recipe-specific markdown rendering for D&D 5e recipes
 
-import type { Entry } from "../../../types/entry.js";
+import type { Entry, EntryEntries } from "../../../types/entry.js";
 import type {
 	Recipe,
 	RecipeServes,
@@ -51,10 +51,10 @@ export interface RecipeRenderableEntriesMeta {
 	entryMakes: string | null;
 	entryServes: string | null;
 	entryMetasTime: RecipeTimeMeta[] | null;
-	entryIngredients: { type: "entries"; entries: Entry[] };
-	entryEquipment: { type: "entries"; entries: Entry[] } | null;
-	entryCooksNotes: { type: "entries"; entries: Entry[] } | null;
-	entryInstructions: { type: "entries"; entries: Entry[] };
+	entryIngredients: EntryEntries;
+	entryEquipment: EntryEntries | null;
+	entryCooksNotes: EntryEntries | null;
+	entryInstructions: EntryEntries;
 }
 
 // ============ Helper Functions ============
@@ -208,12 +208,12 @@ const getGenericCompactRenderedString = (
 };
 
 const getRenderedSubEntry = (
-	entry: { type: "entries"; entries: Entry[] },
+	entry: EntryEntries,
 	renderer: MarkdownRenderer,
 	meta: RenderMeta,
 ): string => {
 	const subStack: TextStack = createTextStack();
-	renderer.recursiveRender(entry as unknown as Entry, subStack, meta, { suffix: "\n" });
+	renderer.recursiveRender(entry, subStack, meta, { suffix: "\n" });
 	return markdownUtils.getNormalizedNewlines(subStack.join("").trim());
 };
 
@@ -248,8 +248,8 @@ export class RecipeMarkdownRenderer {
 					.map(({ entryName, entryContent }) => `${entryName} ${entryContent}`),
 				entriesMeta.entryMakes,
 				entriesMeta.entryServes,
-				entriesMeta.entryIngredients as unknown as Entry,
-			].filter(Boolean) as Entry[];
+				entriesMeta.entryIngredients as Entry,
+			].filter((e): e is Entry => e != null);
 
 			const entFull = {
 				...recipe,
@@ -266,10 +266,10 @@ export class RecipeMarkdownRenderer {
 		const out = [
 			ptHead,
 			entriesMeta.entryEquipment
-				? this._renderer.render(entriesMeta.entryEquipment as unknown as Entry)
+				? this._renderer.render(entriesMeta.entryEquipment)
 				: null,
 			entriesMeta.entryCooksNotes
-				? this._renderer.render(entriesMeta.entryCooksNotes as unknown as Entry)
+				? this._renderer.render(entriesMeta.entryCooksNotes)
 				: null,
 			ptInstructions,
 		]

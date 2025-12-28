@@ -45,7 +45,7 @@ const getModeEntry = (mode) => {
                 entries: submode.entries,
             };
         });
-        modeEntry.entries.push(...submodeEntries);
+        modeEntry?.entries?.push(...submodeEntries);
     }
     return modeEntry;
 };

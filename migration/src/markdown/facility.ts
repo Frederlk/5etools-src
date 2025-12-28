@@ -17,6 +17,10 @@ import { MarkdownRenderer, getMarkdownRenderer, markdownUtils } from "./renderer
 
 // ============ Types ============
 
+interface FacilityPrerequisite extends Prerequisite {
+	facility?: (string | { name: string })[];
+}
+
 export interface FacilityEntry extends FacilityBase {
 	_displayName?: string;
 }
@@ -140,7 +144,7 @@ const getRenderedPrerequisite = (ent: FacilityEntry): string | null => {
 
 	const parts: string[] = [];
 
-	for (const prereq of ent.prerequisite) {
+	for (const prereq of ent.prerequisite as FacilityPrerequisite[]) {
 		const prereqParts: string[] = [];
 
 		if (prereq.level) {
@@ -155,15 +159,12 @@ const getRenderedPrerequisite = (ent: FacilityEntry): string | null => {
 			prereqParts.push(prereq.other);
 		}
 
-		if ((prereq as any).facility) {
-			const facilities = (prereq as any).facility;
-			if (Array.isArray(facilities)) {
-				const facilityNames = facilities.map((f: any) =>
-					typeof f === "string" ? f : f.name || "",
-				).filter(Boolean);
-				if (facilityNames.length) {
-					prereqParts.push(facilityNames.join(" or "));
-				}
+		if (prereq.facility) {
+			const facilityNames = prereq.facility
+				.map(f => typeof f === "string" ? f : f.name || "")
+				.filter(Boolean);
+			if (facilityNames.length) {
+				prereqParts.push(facilityNames.join(" or "));
 			}
 		}
 
