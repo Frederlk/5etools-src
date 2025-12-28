@@ -213,6 +213,19 @@ export {
 	type TrapRenderableEntriesMeta,
 } from "./trap.js";
 
+// ============ Markdown Converter ============
+
+export {
+	MarkdownConverter,
+	getEntries,
+	getConvertedTable,
+	postProcessTable,
+	ENTRIES_WITH_CHILDREN,
+	ENTRIES_WITH_ENUMERATED_TITLES,
+	type ConvertedEntry,
+	type TablePostProcessOptions,
+} from "./converter.js";
+
 // ============ Re-export Types ============
 
 export type {

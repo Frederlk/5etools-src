@@ -23,14 +23,14 @@ Phased migration from legacy JS to modern TypeScript, starting with smallest dep
 | 4 | Base Renderer | ✅ Complete | Code + integration tests (305 tests) |
 | 5 | Entity Renderers | ✅ Complete | HTML renderers for monster/spell/item |
 | 6 | Markdown Renderer | ✅ Complete | Core + all 20 entities done |
-| 7 | Converter | ❌ Not Started | Markdown → Entry conversion + E2E tests |
+| 7 | Converter | ✅ Complete | Markdown → Entry conversion + E2E tests (45 tests) |
 
 ### Remaining Work
 
 **Tests:**
 - [x] Phase 3: Unit tests for parser modules (282 tests)
 - [x] Phase 4: Integration tests for base renderer (305 tests)
-- [ ] Phase 7: E2E tests with real D&D data
+- [x] Phase 7: E2E tests for converter (45 tests)
 
 **Phase 5 - Entity Renderers (HTML output):** ✅ COMPLETE
 - [x] renderer/monster.ts - Monster HTML rendering utilities
@@ -55,8 +55,8 @@ Phased migration from legacy JS to modern TypeScript, starting with smallest dep
 - [x] hazard
 - [x] legendaryGroup
 
-**Phase 7 - Converter:**
-- [ ] markdown/converter.ts - Parse markdown back to Entry objects
+**Phase 7 - Converter:** ✅ COMPLETE
+- [x] markdown/converter.ts - Parse markdown back to Entry objects (~940 lines, 45 tests)
 
 ---
 
@@ -577,8 +577,8 @@ export const defaultConfig: MarkdownConfig = {
 - [x] 6.20 markdown/legendaryGroup.ts
 
 ### Phase 7 - Converter
-- [ ] 7.1 markdown/converter.ts
-- [ ] E2E tests with real data
+- [x] 7.1 markdown/converter.ts
+- [x] E2E tests with real data
 
 ---
 

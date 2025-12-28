@@ -223,35 +223,35 @@ describe("base", () => {
 
 		describe("render table", () => {
 			it("should render table with caption", () => {
-				const entry: EntryTable = {
+				const entry = {
 					type: "table",
 					caption: "My Table",
 					colLabels: ["A", "B"],
 					rows: [["1", "2"]],
-				};
+				} as unknown as EntryTable;
 				const result = renderer.render(entry);
 				expect(result).toContain("My Table");
 			});
 
 			it("should render column labels", () => {
-				const entry: EntryTable = {
+				const entry = {
 					type: "table",
 					colLabels: ["Col A", "Col B"],
 					rows: [["1", "2"]],
-				};
+				} as unknown as EntryTable;
 				const result = renderer.render(entry);
 				expect(result).toContain("Col A");
 				expect(result).toContain("Col B");
 			});
 
 			it("should render table rows", () => {
-				const entry: EntryTable = {
+				const entry = {
 					type: "table",
 					rows: [
 						["A1", "B1"],
 						["A2", "B2"],
 					],
-				};
+				} as unknown as EntryTable;
 				const result = renderer.render(entry);
 				expect(result).toContain("A1");
 				expect(result).toContain("B1");
@@ -260,29 +260,29 @@ describe("base", () => {
 			});
 
 			it("should handle roll cells with exact value", () => {
-				const entry: EntryTable = {
+				const entry = {
 					type: "table",
 					rows: [[{ roll: { exact: 5 } }, "Effect"]],
-				};
+				} as unknown as EntryTable;
 				const result = renderer.render(entry);
 				expect(result).toContain("5");
 			});
 
 			it("should handle roll cells with range", () => {
-				const entry: EntryTable = {
+				const entry = {
 					type: "table",
 					rows: [[{ roll: { min: 1, max: 4 } }, "Effect"]],
-				};
+				} as unknown as EntryTable;
 				const result = renderer.render(entry);
 				expect(result).toContain("1-4");
 			});
 
 			it("should strip tags from column labels", () => {
-				const entry: EntryTable = {
+				const entry = {
 					type: "table",
 					colLabels: ["{@dice d6}", "Effect"],
 					rows: [[1, "A"]],
-				};
+				} as unknown as EntryTable;
 				const result = renderer.render(entry);
 				expect(result).toContain("d6");
 				expect(result).not.toContain("{@");

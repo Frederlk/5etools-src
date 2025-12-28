@@ -309,60 +309,60 @@ describe("table", () => {
 
 	describe("getAutoConvertedRollMode", () => {
 		it("should return NONE for table without headers", () => {
-			const table: EntryTable = { type: "table", rows: [[1, "A"]] };
+			const table = { type: "table", rows: [[1, "A"]] } as unknown as EntryTable;
 			expect(getAutoConvertedRollMode(table)).toBe(RollColMode.NONE);
 		});
 
 		it("should return NONE for table with non-dice header", () => {
-			const table: EntryTable = {
+			const table = {
 				type: "table",
 				colLabels: ["Result", "Effect"],
 				rows: [[1, "A"]],
-			};
+			} as unknown as EntryTable;
 			expect(getAutoConvertedRollMode(table)).toBe(RollColMode.NONE);
 		});
 
 		it("should return STANDARD for dice table", () => {
-			const table: EntryTable = {
+			const table = {
 				type: "table",
 				colLabels: ["d6", "Effect"],
 				rows: [
 					[1, "A"],
 					[2, "B"],
 				],
-			};
+			} as unknown as EntryTable;
 			expect(getAutoConvertedRollMode(table)).toBe(RollColMode.STANDARD);
 		});
 
 		it("should return NONE if rows are not rollable", () => {
-			const table: EntryTable = {
+			const table = {
 				type: "table",
 				colLabels: ["d6", "Effect"],
 				rows: [
 					["text", "A"],
 					[2, "B"],
 				],
-			};
+			} as unknown as EntryTable;
 			expect(getAutoConvertedRollMode(table)).toBe(RollColMode.NONE);
 		});
 
 		it("should return NONE for single column header", () => {
-			const table: EntryTable = {
+			const table = {
 				type: "table",
 				colLabels: ["d6"],
 				rows: [[1]],
-			};
+			} as unknown as EntryTable;
 			expect(getAutoConvertedRollMode(table)).toBe(RollColMode.NONE);
 		});
 
 		it("should use provided headerRowMetas", () => {
-			const table: EntryTable = {
+			const table = {
 				type: "table",
 				rows: [
 					[1, "A"],
 					[2, "B"],
 				],
-			};
+			} as unknown as EntryTable;
 			const headerRowMetas = [["d6", "Effect"]];
 			expect(getAutoConvertedRollMode(table, { headerRowMetas })).toBe(RollColMode.STANDARD);
 		});
@@ -606,19 +606,19 @@ describe("table", () => {
 		});
 
 		it("should fall back to first row length", () => {
-			const table: EntryTable = {
+			const table = {
 				type: "table",
 				rows: [["A", "B", "C", "D"]],
-			};
+			} as unknown as EntryTable;
 			expect(getColumnCount(table)).toBe(4);
 		});
 
 		it("should prefer colLabels over first row", () => {
-			const table: EntryTable = {
+			const table = {
 				type: "table",
 				colLabels: ["A", "B"],
 				rows: [["X", "Y", "Z"]],
-			};
+			} as unknown as EntryTable;
 			expect(getColumnCount(table)).toBe(2);
 		});
 	});
