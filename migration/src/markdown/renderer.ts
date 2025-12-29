@@ -933,7 +933,7 @@ export class MarkdownRenderer extends BaseRenderer {
 		const name = this._getEntryName(entry);
 		if (!name) return false;
 		const lastChar = name[name.length - 1];
-		return ![".", "?", "!"].includes(lastChar);
+		return ![".", "?", "!", ":"].includes(lastChar);
 	}
 
 	protected override _renderItemSub(
